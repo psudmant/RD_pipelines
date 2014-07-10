@@ -1,0 +1,262 @@
+import glob
+import gzip
+import io
+import random
+import math
+from datetime import date
+import time
+import os
+
+"""
+BEGIN CONSTANTS
+"""
+
+SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/"
+
+DUP_TABIX="~psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz"
+GENE_TABIX="~psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz"
+GC_TABIX="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz"
+
+P_CUTOFF=0.0001
+
+DTS_DIR="input_DTS/500_bp_slide"
+DTS_REF_DIR=DTS_DIR
+GGLOB_DIR="gglob"
+
+CUTOFF_SCALE=3000
+WINDOW_SIZE=500
+MAX_MERGE_DIF=0.27
+WND_CONTIGS="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs"
+GAPS="/net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz"
+
+"""
+Begin TEST_CALL_FILTER section.
+Run initially with TEST_CALL_FILTER set to True, then check call plots in plot directory. 
+Once you are satisfied with the calls, run 
+snakemake clean_call_filter_test 
+then run the Snakefile with TEST_CALL_FILTER set to False. 
+
+This section modifies how rule genotype_refine_breakpoints_by_chr_subset is run.
+"""
+
+TEST_CALL_FILTER = False
+
+if TEST_CALL_FILTER:
+    CONTIGS=["chr20"]
+    PLOT_MODE="--do_plot"
+    #PLOT_MODE=""
+else:
+    CONTIGS=["chr%d" % d for d in range(1,23)]
+    PLOT_MODE=""
+
+"""End TEST_CALL_FILTER section"""
+
+DTS_PREFIX="500_bp_"
+
+samples=[s.split("/")[-1].replace(DTS_PREFIX,"") for s in glob.glob("%s/*"%DTS_DIR)]
+
+bad_GC = ["Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla-Banjo","Gorilla_gorilla_gorilla-Coco","Gorilla_beringei_beringei-Turimaso"] 
+samples = list(set(samples)-set(bad_GC))
+
+#print("\n".join(sorted(samples)))
+#print(len(samples))
+
+N_SUBSETS=100
+SUBSETS=range(N_SUBSETS)
+
+#references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
+references = samples
+
+EXCLUDE=[]
+
+samples=list(set(samples)-set(EXCLUDE))
+
+"""
+END CONSTANTS
+"""
+
+"""
+LOAD MODULES, SET PYTHONPATH, AND CREATE INITIAL DIRECTORIES
+"""
+INIT_MODULES="module load python/2.7.2 numpy/1.6.1 scipy/0.10.0 hdf5/1.8.8 pytables/2.3.1_hdf5-1.8.8 networkx/1.6 fastahack/0.1 fastahack-python/0.1 tabix/0.2.6;"
+os.system("export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller;")
+
+DIRS_TO_MAKE = ["log", "plot"]
+
+os.system("mkdir -p %s" % ' '.join(DIRS_TO_MAKE))
+
+datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
+
+rule all:
+    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
+    params: sge_opts="-l mfree=2G -N clustering_all"
+
+rule export_callset:
+    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
+    output: "exported_callsets/%s/final_calls.bed"%datestr
+    params: outdir="exported_callsets/%s"%(datestr)
+    shell: "cp {input} {params.outdir}"
+
+rule make_table_of_simple_genotypes:
+    input: "final_calls/final_genotypes"
+    output: "final_calls/analysis_callsets/bi_allelic_genotypes"
+    params:  sge_opts="-l mfree=2G -N combine_contigs", exclude=":".join(EXCLUDE)
+    shell: "{INIT_MODULES} python ~psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
+
+rule combine_by_chr:
+    input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
+    output: "final_calls/final_genotypes", "final_calls/final_calls.bed","final_calls/final_calls.filter_data"  
+    params:  sge_opts="-l mfree=2G -N combine_contigs"
+    run:
+        FOUT_gts = open(output[0], 'w')
+        FOUT_bed = open(output[1], 'w')
+        FOUT_filt = open(output[2], 'w')
+        
+        h_gts = open(input[0]).readline()
+        h_filt = open(input[0].replace(".genotypes",".bed.info")).readline()
+
+        FOUT_gts.write(h_gts)
+        FOUT_filt.write(h_filt)
+
+        for fn_i in input:
+            FIN_gts = open(fn_i)
+            FIN_bed = open(fn_i.replace(".genotypes",".bed"))
+            FIN_filt = open(fn_i.replace(".genotypes",".bed.info"))
+            
+            h  = FIN_gts.readline()
+            for l in FIN_gts:
+                FOUT_gts.write(l)
+            
+            h  = FIN_filt.readline()
+            for l in FIN_filt:
+                FOUT_filt.write(l)
+
+            for l in FIN_bed:
+                FOUT_bed.write(l)
+                
+        FOUT_bed.close()
+        FOUT_filt.close()
+        FOUT_gts.close()
+
+rule clean_call_filter_test:
+    input: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
+    params: contig = '{contig}'
+    shell: "rm -rf final_calls/by_chr/{params.contig}/*"
+
+rule genotype_refine_breakpoints_by_chr_subset:
+    input: "all_resolved_calls/all_resolved_calls.gz"
+    output: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
+    params: contig="{contig}", 
+            sge_opts="-l mfree=10G -N {contig}_{k}_genotyping", 
+            curr_n="{k}", 
+            plot_out_dir="final_calls/by_chr/{contig}",
+            subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
+    shell: "{INIT_MODULES} python {SCRIPT_DIR}/genotype_refined_call_sets.py --call_table {input} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
+import shutil
+
+rule bgzip_all_refined_calls:       
+    input: "all_resolved_calls/all_resolved_calls"
+    params: sge_opts="-l mfree=10G -N clustering_all"
+    output: "all_resolved_calls/all_resolved_calls.gz"
+    shell: "{INIT_MODULES} bgzip {input}"
+
+rule cat_all_refined_calls:
+    input: expand("resolved_calls_per_indiv/{sample}.segs.sorted.gz" , sample=samples)
+    output: "all_resolved_calls/all_resolved_calls"
+    params: sge_opts="-l mfree=6G -N merging_all"
+    run:
+        F_out = open(output[0],'w') 
+        F_out.write("chr\tstart\tend\tlog_likelihood\tindiv\tcalled_refs\n")
+        for f in input:
+            indiv=f.split("/")[-1].split(".")[0]
+            gF = io.TextIOWrapper(gzip.open(f, 'rb'))
+            h = gF.readline()
+            for l in gF:
+                chr, start, end, indivs, ll = l.rstrip().split()
+                F_out.write("{chr}\t{start}\t{end}\t{ll}\t{indiv}\t{indivs}\n".format(chr=chr, start=start, end=end, ll=ll, indivs=indivs, indiv=indiv))
+            gF.close()
+        F_out.close()
+            
+    #"bash {SCRIPT_DIR}/do_cat_refined_calls.sh resolved_calls_per_indiv {output}"
+
+rule bgzip_refined_calls:
+    input: "resolved_calls_per_indiv/{sample}.segs.sorted"
+    output: "resolved_calls_per_indiv/{sample}.segs.sorted.gz", "resolved_calls_per_indiv/{sample}.segs.sorted.gz.tbi"
+    params: sge_opts="-l mfree=6G -N bgzip_{sample}"
+    shell: "{INIT_MODULES} bgzip -f {input}; tabix -f -S 1 -s 1 -b 2 -e 3 {input}.gz"
+
+rule sort_refined_calls:
+    input: "resolved_calls_per_indiv/{sample}.segs", "beds_resolved_calls/all.bed"
+    output: "resolved_calls_per_indiv/{sample}.segs.sorted"
+    params: sge_opts="-l mfree=6G -N sort_refined_{sample}"
+    shell: "cat {input[0]} | sort -k 1,1 -k 2n,2n > {output}"
+
+rule cat_indiv_refined_beds:
+    input: expand("beds_resolved_calls/{sample}.bed",sample=samples)
+    output: "beds_resolved_calls/all.bed"
+    params: sge_opts="-l mfree=10G -N merging_indiv_beds"
+    shell: "cat {input} > {output}"
+    
+rule make_bed_indiv_refined_calls:
+    input: "resolved_calls_per_indiv/{sample}.segs"
+    output: "beds_resolved_calls/{sample}.bed"
+    params: sge_opts="-l mfree=6G -N bed_out_{sample}",sample="{sample}"
+    run:
+        Fout =open(output[0],'w')
+        Fin = open(input[0], 'r')
+        header = Fin.readline()
+        bed_header="""track name="%s_merged" description="%s_merged" visibility=2 itemRgb="On" priority=1\n"""%(params.sample, params.sample)
+        Fout.write(bed_header)
+        col="%d,%d,%d"%(tuple([random.randint(0,255) for x in range(3)]))
+        for line in Fin:
+            chr,start,end,indivs,ll=line.split()
+            Fout.write("%s\t%s\t%s\t%s\t%s\t+\t%s\t%s\t%s\n"%(chr,start,end,ll,ll,start,end,col))
+        Fout.close()
+        Fin.close()
+
+rule refine_calls:
+    input: table="call_tables_merged_per_indiv/{sample}.segs.gz", test_DTS="%s/500_bp_{sample}" % DTS_DIR, ref_DTS=["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references]
+    output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
+    params: sge_opts="-l mfree=20G -N refining_{sample}", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
+    shell: "{INIT_MODULES} python /net/eichler/vol22/projects/NCS_autism/nobackups/rd_pipeline/ssf_DTS_caller/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
+#--limit_to_chr chr20 
+
+rule merge_by_reference:
+    input:  input_segs_fns=["indiv_dCGH_files/{sample}.%s.segs.gz"%(ref) for ref in references]
+    params: indiv="{sample}", sge_opts="-l mfree=6G -N merging_{sample}"
+    output: out_fn="call_tables_merged_per_indiv/{sample}.segs.gz" 
+    run:
+        gF = gzip.open(output.out_fn, 'wb')
+        gF.write(bytes("indiv_ref\tindiv_test\trank\tchr\tstart\tend\tmu\tp\tadjusted_p\twindow_size\n", 'UTF-8'))
+        for fn_input in input.input_segs_fns:
+            ref = fn_input.split(".")[1] 
+            gFIN = io.TextIOWrapper(gzip.open(fn_input, 'rb'))
+            for l in gFIN:
+                gF.write(bytes("%s\t%s\t%s\n"%(ref, params.indiv, l.rstrip()),'UTF-8'))
+        gF.close()
+
+rule gzip:
+    input: "indiv_dCGH_files/{sample}.{reference}.segs"
+    output: "indiv_dCGH_files/{sample}.{reference}.segs.gz"
+    params: sge_opts="-l mfree=6G -N gzip_{sample}_{reference}"
+    shell: "gzip -f {input}"
+
+rule dCGH:
+    input: "%s/500_bp_{sample}" % DTS_DIR, "%s/500_bp_{reference}" % DTS_REF_DIR
+    output: "indiv_dCGH_files/{sample}.{reference}.segs" 
+    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference}", contigs=":".join(CONTIGS), sample="{sample}", ref="{reference}"
+    run:
+        if params.ref==params.sample:
+            shell("touch {output[0]};")
+        else:
+            shell("mkdir -p indiv_dCGH_visualizations/{params.sample}.{params.ref}; python {SCRIPT_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} --cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} --output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} --segdups {DUP_TABIX} --superdup_track /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups_sorted.gz --gene_tabix {GENE_TABIX} --GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{params.sample}.{params.ref} --plot_lims -2:2 ") 
+
+#rule clean:
+#    shell: "rm -rf ./beds_all_calls ./beds_resolved_calls ./indiv_dCGH_files ./call_tables_merged_per_indiv ./all_resolved_calls ./resolved_calls_per_indiv ./log ./final_calls ./indiv_dCGH_visualizations; mkdir ./log"
+
+rule pclean:
+    shell: "rm -rf ./all_resolved_calls ./resolved_calls_per_indiv ./log ./beds_resolved_calls ./final_calls; mkdir ./log"
+
+rule fclean:
+    shell: "rm -rf ./log ./final_calls ./plotting/test/; mkdir ./log; mkdir ./plotting/test"
+
