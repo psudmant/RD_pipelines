@@ -1,4 +1,4 @@
-## Assess GC-associated coverage biases
+## Setup files for Read-Depth genome analysis
 
 Pipeline overview:
 
