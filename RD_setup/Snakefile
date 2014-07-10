@@ -17,11 +17,6 @@ SUNK_DIR="500_bp_sunk_slide"
 WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl"
 SUNK_WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl"
 
-#genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","Gorilla_beringei_beringei_Maisha","Gorilla_beringei_beringei_Tuck","Gorilla_beringei_beringei_Umurimo","Gorilla_beringei_beringei_Zirikana","Gorilla_beringei_graueri_Itebero","Gorilla_beringei_graueri_Ntabwoba","Gorilla_beringei_graueri_Serufuli","Gorilla_beringei_graueri_Tumani","Gorilla_gorilla_gorilla_Banjo","Gorilla_gorilla_gorilla_Coco"]
-#genomes=["Gorilla_beringei_beringei_Turimaso","Gorilla_beringei_graueri_Pinga","Gorilla_beringei_graueri_Dunia"]
-#genomes=['Gorilla_gorilla_gorilla-9752_Suzie', 'Gorilla_gorilla_gorilla-A962_Amani', 'Gorilla_gorilla_gorilla-B642_Akiba_Beri', 'Gorilla_gorilla_gorilla-B643_Choomba']
-#genomes=["Gorilla_gorilla_gorilla-9753_Kokomo","Gorilla_gorilla_gorilla-KB6039_Oko","Gorilla_gorilla_gorilla-X00108_Abe","Gorilla_gorilla_gorilla-X00109_Tzambo"]
-
 genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","Gorilla_beringei_beringei_Maisha","Gorilla_beringei_beringei_Tuck","Gorilla_beringei_beringei_Turimaso","Gorilla_beringei_beringei_Umurimo","Gorilla_beringei_beringei_Zirikana","Gorilla_beringei_graueri_Dunia","Gorilla_beringei_graueri_Itebero","Gorilla_beringei_graueri_Ntabwoba","Gorilla_beringei_graueri_Pinga","Gorilla_beringei_graueri_Serufuli","Gorilla_beringei_graueri_Tumani","Gorilla_gorilla_gorilla-9752_Suzie","Gorilla_gorilla_gorilla-9753_Kokomo","Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla_Banjo","Gorilla_gorilla_gorilla_Coco","Gorilla_gorilla_gorilla-KB6039_Oko","Gorilla_gorilla_gorilla-X00108_Abe","Gorilla_gorilla_gorilla-X00109_Tzambo"]
 
 g_to_index = {}
@@ -85,8 +80,9 @@ rule get_params:
                                     --wssd_file_name wssd.combined_corrected.GC3.v2 \
                                     --output_directory _filtered_libs_analysis.GC3v2-NOWM-pad36 \
                                     --edits -1:0  \
-                                    --only_use_cps 2  \
                                     --type simple"%g_to_index[params.indiv])
+                                    #--only_use_cps 2  ONLY FOR NON-HUMANS
+                                    
 
 rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
