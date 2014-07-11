@@ -92,10 +92,11 @@ rule all:
     params: sge_opts="-l mfree=2G -N clustering_all"
 
 rule export_callset:
-    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
+    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf.gz", "final_calls/final_calls.filter_data"    
     output: "exported_callsets/%s/final_calls.bed"%datestr
     params: outdir="exported_callsets/%s"%(datestr)
     shell: "cp {input} {params.outdir}"
+
 
 rule make_table_of_simple_genotypes:
     input: "final_calls/final_genotypes"
