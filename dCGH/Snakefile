@@ -146,6 +146,7 @@ rule test_call_filter:
     params: sge_opts=''
 
 rule clean_call_filter_test:
+    params: sge_opts = ""
     shell: "rm -rf final_calls/by_chr/*/*"
 
 rule genotype_refine_breakpoints_by_chr_subset:
