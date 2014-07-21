@@ -11,7 +11,7 @@ import os
 BEGIN CONSTANTS
 """
 
-SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/"
+SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller"
 
 DUP_TABIX="~psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz"
 GENE_TABIX="~psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz"
@@ -19,7 +19,7 @@ GC_TABIX="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz"
 
 P_CUTOFF=0.0001
 
-DTS_DIR="input_DTS/500_bp_slide"
+DTS_DIR="DTS_files/500_bp_slide"
 DTS_REF_DIR=DTS_DIR
 GGLOB_DIR="gglob"
 
@@ -41,12 +41,13 @@ This section modifies how rule genotype_refine_breakpoints_by_chr_subset is run.
 
 TEST_CALL_FILTER = False
 
+ALL_CONTIGS = ["chr%d" % d for d in range(1,23)]
+
 if TEST_CALL_FILTER:
-    CONTIGS=["chr20"]
+    TEST_CONTIGS=["chr20"]
     PLOT_MODE="--do_plot"
-    #PLOT_MODE=""
 else:
-    CONTIGS=["chr%d" % d for d in range(1,23)]
+    TEST_CONTIGS=ALL_CONTIGS
     PLOT_MODE=""
 
 """End TEST_CALL_FILTER section"""
@@ -71,6 +72,12 @@ EXCLUDE=[]
 
 samples=list(set(samples)-set(EXCLUDE))
 
+DIRS_TO_MAKE = ["plotting/test", "log"]
+
+for path in DIRS_TO_MAKE:
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 """
 END CONSTANTS
 """
@@ -81,7 +88,7 @@ LOAD MODULES, SET PYTHONPATH, AND CREATE INITIAL DIRECTORIES
 INIT_MODULES="module load python/2.7.2 numpy/1.6.1 scipy/0.10.0 hdf5/1.8.8 pytables/2.3.1_hdf5-1.8.8 networkx/1.6 fastahack/0.1 fastahack-python/0.1 tabix/0.2.6;"
 os.system("export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller;")
 
-DIRS_TO_MAKE = ["log", "plot"]
+DIRS_TO_MAKE = ["log", "plot", "plotting/test"]
 
 os.system("mkdir -p %s" % ' '.join(DIRS_TO_MAKE))
 
@@ -97,7 +104,6 @@ rule export_callset:
     params: outdir="exported_callsets/%s"%(datestr)
     shell: "cp {input} {params.outdir}"
 
-
 rule make_table_of_simple_genotypes:
     input: "final_calls/final_genotypes"
     output: "final_calls/analysis_callsets/bi_allelic_genotypes"
@@ -105,7 +111,7 @@ rule make_table_of_simple_genotypes:
     shell: "{INIT_MODULES} python ~psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
 
 rule combine_by_chr:
-    input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
+    input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=TEST_CONTIGS, k=SUBSETS)
     output: "final_calls/final_genotypes", "final_calls/final_calls.bed","final_calls/final_calls.filter_data"  
     params:  sge_opts="-l mfree=2G -N combine_contigs"
     run:
@@ -139,10 +145,12 @@ rule combine_by_chr:
         FOUT_filt.close()
         FOUT_gts.close()
 
+rule test_call_filter:
+    input: expand("final_calls/by_chr/{contig}/{k}.{ext}", contig=TEST_CONTIGS, k=SUBSETS, ext=["genotypes", "bed", "vcf"])
+    params: sge_opts=''
+
 rule clean_call_filter_test:
-    input: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
-    params: contig = '{contig}'
-    shell: "rm -rf final_calls/by_chr/{params.contig}/*"
+    shell: "rm -rf final_calls/by_chr/*/*"
 
 rule genotype_refine_breakpoints_by_chr_subset:
     input: "all_resolved_calls/all_resolved_calls.gz"
@@ -153,7 +161,6 @@ rule genotype_refine_breakpoints_by_chr_subset:
             plot_out_dir="final_calls/by_chr/{contig}",
             subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
     shell: "{INIT_MODULES} python {SCRIPT_DIR}/genotype_refined_call_sets.py --call_table {input} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
-import shutil
 
 rule bgzip_all_refined_calls:       
     input: "all_resolved_calls/all_resolved_calls"
@@ -245,7 +252,7 @@ rule gzip:
 rule dCGH:
     input: "%s/500_bp_{sample}" % DTS_DIR, "%s/500_bp_{reference}" % DTS_REF_DIR
     output: "indiv_dCGH_files/{sample}.{reference}.segs" 
-    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference}", contigs=":".join(CONTIGS), sample="{sample}", ref="{reference}"
+    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference}", contigs=":".join(ALL_CONTIGS), sample="{sample}", ref="{reference}"
     run:
         if params.ref==params.sample:
             shell("touch {output[0]};")
@@ -259,5 +266,5 @@ rule pclean:
     shell: "rm -rf ./all_resolved_calls ./resolved_calls_per_indiv ./log ./beds_resolved_calls ./final_calls; mkdir ./log"
 
 rule fclean:
-    shell: "rm -rf ./log ./final_calls ./plotting/test/; mkdir ./log; mkdir ./plotting/test"
+    shell: "rm -rf ./log ./final_calls ./plot; mkdir ./log; mkdir ./plot"
 
