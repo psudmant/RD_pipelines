@@ -72,7 +72,7 @@ EXCLUDE=[]
 
 samples=list(set(samples)-set(EXCLUDE))
 
-DIRS_TO_MAKE = ["plotting/test", "log"]
+DIRS_TO_MAKE = ["plotting/test", "plot", "log"]
 
 for path in DIRS_TO_MAKE:
     if not os.path.exists(path):
@@ -87,10 +87,6 @@ LOAD MODULES, SET PYTHONPATH, AND CREATE INITIAL DIRECTORIES
 """
 INIT_MODULES="module load python/2.7.2 numpy/1.6.1 scipy/0.10.0 hdf5/1.8.8 pytables/2.3.1_hdf5-1.8.8 networkx/1.6 fastahack/0.1 fastahack-python/0.1 tabix/0.2.6;"
 os.system("export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller;")
-
-DIRS_TO_MAKE = ["log", "plot", "plotting/test"]
-
-os.system("mkdir -p %s" % ' '.join(DIRS_TO_MAKE))
 
 datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
 
