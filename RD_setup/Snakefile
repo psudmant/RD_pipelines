@@ -19,10 +19,15 @@ SUNK_WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/
 
 genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","Gorilla_beringei_beringei_Maisha","Gorilla_beringei_beringei_Tuck","Gorilla_beringei_beringei_Turimaso","Gorilla_beringei_beringei_Umurimo","Gorilla_beringei_beringei_Zirikana","Gorilla_beringei_graueri_Dunia","Gorilla_beringei_graueri_Itebero","Gorilla_beringei_graueri_Ntabwoba","Gorilla_beringei_graueri_Pinga","Gorilla_beringei_graueri_Serufuli","Gorilla_beringei_graueri_Tumani","Gorilla_gorilla_gorilla-9752_Suzie","Gorilla_gorilla_gorilla-9753_Kokomo","Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla_Banjo","Gorilla_gorilla_gorilla_Coco","Gorilla_gorilla_gorilla-KB6039_Oko","Gorilla_gorilla_gorilla-X00108_Abe","Gorilla_gorilla_gorilla-X00109_Tzambo"]
 
+###g_to_index is a dictionary with sample names as keys and directory prefixes as values. 
+###This allows analysis scripts to find the wssd outfiles, which by default will be in mapping/{genome}/{value}_merged.sorted/wssd_out_file
+ 
 g_to_index = {}
 for f in glob.glob("%s/*"%SPLIT_DIR):
     g = open(f).readline().split()[0]
     g_to_index[g] = f 
+
+###
 
 rule all:
     input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["sunk","wssd"])
@@ -44,33 +49,33 @@ rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
-    shell: "python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
-                    --genome  %s  \
+                    --genome  {params.indiv}  \
                     --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
                     --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv]
+                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
 
 rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
-    shell: "python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
                     --genome  %s  \
                     --out_prefix {DTS_DIR}/{WSSD_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {WNDS_PKL}\
                     --wnd_contig_file {WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv]
+                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
 
 rule get_params:
     input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     params: sge_opts="-l mfree=4G -N params_{genome}", indiv="{genome}"
-    shell: "python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
+    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
                                     --in_bac_regions /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19  \
                                     --in_contigs {CONTIGS} \
                                     --in_mask {MASK_TRACK} \
@@ -80,7 +85,7 @@ rule get_params:
                                     --wssd_file_name wssd.combined_corrected.GC3.v2 \
                                     --output_directory _filtered_libs_analysis.GC3v2-NOWM-pad36 \
                                     --edits -1:0  \
-                                    --type simple"%g_to_index[params.indiv]
+                                    --type simple"%g_to_index[params.indiv])
                                     #--only_use_cps 2  ONLY FOR NON-HUMANS
                                     
 
@@ -88,7 +93,7 @@ rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     params: sge_opts="-l mfree=14G -N wssd_{genome}", indiv="{genome}"
-    shell: "python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
+    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width 200  \
                                     --in_genomes %s \
@@ -97,13 +102,13 @@ rule WSSD_cc:
                                     --input_wssd_file_names wssd_out_file \
                                     --max_correction 3  \
                                     --append_to_name .GC3.v2  \
-                                    --overide_thresh .01"%g_to_index[params.indiv]
+                                    --overide_thresh .01"%g_to_index[params.indiv])
 
 rule BAC:
     input:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     output:"bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     params: sge_opts="-l mfree=10G -N BAC_{genome}", indiv="{genome}"
-    shell: "python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py  \
+    run: shell("python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py  \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
@@ -112,13 +117,13 @@ rule BAC:
                             --bac_list_file /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19 \
                             --input_genomes %s\
                             --input_wssd_file_names wssd_out_file \
-                            --genome HG19"%g_to_index[params.indiv]
+                            --genome HG19"%g_to_index[params.indiv])
 
 rule GetGC:
     input: "mapping/{genome}/{genome}/wssd_out_file"
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome}", indiv="{genome}"
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction/get_gc_correction.py \
+    run: shell("python /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \
@@ -127,4 +132,4 @@ rule GetGC:
                                 --fn_DGV_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/DGV/DGV_variation_hg19.annotation.DTS  \
                                 --fn_superdup_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS  \
                                 --fn_genomic_gaps_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS  \
-                                --wssd_file wssd_out_file"%g_to_index[params.indiv]
+                                --wssd_file wssd_out_file"%g_to_index[params.indiv])
