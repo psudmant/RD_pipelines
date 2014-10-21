@@ -5,10 +5,10 @@ MASK_TRACK="~psudmant/genomes/mask_tracks/HG19-noWM-pad36"
 SUNK_MASK_TRACK="/net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts"
 CONTIGS="~psudmant/genomes/contigs/hg19_contigs.txt"
 GC_TRACK="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content"
-SPLIT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes_moved/hg19/GAGP/GAGP_II/split_GAGP_II/"
+SPLIT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes_moved/hg19/GAGP/GAGP_II/split_GAGP_II"
 WND_WIDTH=500
 
-DTS_DIR="/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA/"
+DTS_DIR="/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA"
 BROWSER_TRACK_OUTDIR="/net/eichler/vol13/browserTracks/peter/whole_genome_wssd/hg19_MNT_GORILLAS"
 
 WSSD_DIR="500_bp_slide"
