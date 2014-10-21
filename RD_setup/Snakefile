@@ -52,7 +52,7 @@ rule make_sunk_DTS:
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
-                    --genome  {params.indiv}  \
+                    --genome %s  \
                     --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
                     --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
