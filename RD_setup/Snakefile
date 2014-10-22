@@ -8,8 +8,8 @@ GC_TRACK="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content"
 SPLIT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes_moved/hg19/GAGP/GAGP_II/split_GAGP_II/"
 WND_WIDTH=500
 
-DTS_DIR="/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA/"
-BROWSER_TRACK_OUTDIR="/net/eichler/vol13/browserTracks/peter/whole_genome_wssd/hg19_MNT_GORILLAS"
+DTS_DIR="DTS_files"
+BROWSER_TRACK_OUTDIR="tracks"
 
 WSSD_DIR="500_bp_slide"
 SUNK_DIR="500_bp_sunk_slide"
@@ -18,6 +18,11 @@ WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windo
 SUNK_WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl"
 
 genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","Gorilla_beringei_beringei_Maisha","Gorilla_beringei_beringei_Tuck","Gorilla_beringei_beringei_Turimaso","Gorilla_beringei_beringei_Umurimo","Gorilla_beringei_beringei_Zirikana","Gorilla_beringei_graueri_Dunia","Gorilla_beringei_graueri_Itebero","Gorilla_beringei_graueri_Ntabwoba","Gorilla_beringei_graueri_Pinga","Gorilla_beringei_graueri_Serufuli","Gorilla_beringei_graueri_Tumani","Gorilla_gorilla_gorilla-9752_Suzie","Gorilla_gorilla_gorilla-9753_Kokomo","Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla_Banjo","Gorilla_gorilla_gorilla_Coco","Gorilla_gorilla_gorilla-KB6039_Oko","Gorilla_gorilla_gorilla-X00108_Abe","Gorilla_gorilla_gorilla-X00109_Tzambo"]
+
+### g_to_index is a dictionary with samples as keys and wssd_out_file directories as values. 
+### By default, the mapping pipeline will give you folders like this: mapping/{sample}/{prefix}_merged.sorted/wssd_out_file
+### If your genomes are listed in the order they were mapped, you could build g_to_index like this:
+### g_to_index = {sample: i for i, sample in enumerate(genomes)}
 
 g_to_index = {}
 for f in glob.glob("%s/*"%SPLIT_DIR):
