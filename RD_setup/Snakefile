@@ -36,13 +36,13 @@ rule all:
 rule make_wssd_tracks: 
     input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
-    params: sge_opts="-l mfree=6G -N {genome}_wssd_track"
+    params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
     shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd"
     
 rule make_sunk_tracks: 
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
-    params: sge_opts="-l mfree=6G -N {genome}_wssd_track"
+    params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
     shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk"
 
 rule make_sunk_DTS:
