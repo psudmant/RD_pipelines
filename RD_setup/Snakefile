@@ -1,12 +1,7 @@
 import glob
 
-SEX_POP="~psudmant/EEE_Lab/1000G/analysis_files/sex_ethnicity_index/GAGP_II"
-MASK_TRACK="~psudmant/genomes/mask_tracks/HG19-noWM-pad36"
-SUNK_MASK_TRACK="/net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts"
-CONTIGS="~psudmant/genomes/contigs/hg19_contigs.txt"
-GC_TRACK="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content"
-SPLIT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes_moved/hg19/GAGP/GAGP_II/split_GAGP_II/"
-WND_WIDTH=500
+# Load configuration.
+configfile: "config.json"
 
 DTS_DIR="DTS_files"
 BROWSER_TRACK_OUTDIR="tracks"
@@ -25,7 +20,7 @@ genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","
 ### g_to_index = {sample: i for i, sample in enumerate(genomes)}
 
 g_to_index = {}
-for f in glob.glob("%s/*"%SPLIT_DIR):
+for f in glob.glob("%s/*" % config["SPLIT_DIR"]):
     g = open(f).readline().split()[0]
     g_to_index[g] = f 
 
@@ -33,43 +28,43 @@ rule all:
     input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["sunk","wssd"])
     params: sge_opts="-l mfree=6G -N final_all"
 
-rule make_wssd_tracks: 
-    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
+rule make_wssd_tracks:
+    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd"
-    
-rule make_sunk_tracks: 
-    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {config.WND_WIDTH} --fn_out wssd"
+
+rule make_sunk_tracks:
+    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
     params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk"
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {config.WND_WIDTH} --fn_out sunk"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
-    output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
+    output: "{DTS_DIR}/500_bp_sunk_slide/{config.WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
-                    --contig_file {CONTIGS}  \
-                    --mask_file {MASK_TRACK} \
+                    --contig_file {config.CONTIGS}  \
+                    --mask_file {config.MASK_TRACK} \
                     --genome  %s  \
-                    --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
+                    --out_prefix {DTS_DIR}/{SUNK_DIR}/{config.WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
                     --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+                    --wnd_width {config.WND_WIDTH}"%g_to_index[params.indiv])
 
 rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
-    output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
+    output: "{DTS_DIR}/500_bp_slide/{config.WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
-                    --contig_file {CONTIGS}  \
-                    --mask_file {MASK_TRACK} \
+                    --contig_file {config.CONTIGS}  \
+                    --mask_file {config.MASK_TRACK} \
                     --genome  %s  \
-                    --out_prefix {DTS_DIR}/{WSSD_DIR}/{WND_WIDTH}_bp   \
+                    --out_prefix {DTS_DIR}/{WSSD_DIR}/{config.WND_WIDTH}_bp   \
                     --wnd_pickle {WNDS_PKL}\
                     --wnd_contig_file {WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+                    --wnd_width {config.WND_WIDTH}"%g_to_index[params.indiv])
 
 rule get_params:
     input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
@@ -77,28 +72,28 @@ rule get_params:
     params: sge_opts="-l mfree=4G -N params_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
                                     --in_bac_regions /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19  \
-                                    --in_contigs {CONTIGS} \
-                                    --in_mask {MASK_TRACK} \
+                                    --in_contigs {config.CONTIGS} \
+                                    --in_mask {config.MASK_TRACK} \
                                     --input_genomes %s \
-                                    --sex_pop_index {SEX_POP} \
+                                    --sex_pop_index {config.SEX_POP} \
                                     --bac_type CALKAN-NOWM-pad36 \
                                     --wssd_file_name wssd.combined_corrected.GC3.v2 \
                                     --output_directory _filtered_libs_analysis.GC3v2-NOWM-pad36 \
                                     --edits -1:0  \
                                     --type simple"%g_to_index[params.indiv])
                                     #--only_use_cps 2  ONLY FOR NON-HUMANS
-                                    
+
 
 rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     params: sge_opts="-l mfree=14G -N wssd_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
-                                    --contigLengths {CONTIGS} \
+                                    --contigLengths {config.CONTIGS} \
                                     --gc_width 200  \
                                     --in_genomes %s \
-                                    --inGC {GC_TRACK}:GC_content \
-                                    --sex_pop_index {SEX_POP} \
+                                    --inGC {config.GC_TRACK}:GC_content \
+                                    --sex_pop_index {config.SEX_POP} \
                                     --input_wssd_file_names wssd_out_file \
                                     --max_correction 3  \
                                     --append_to_name .GC3.v2  \
@@ -109,10 +104,10 @@ rule BAC:
     output:"bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     params: sge_opts="-l mfree=10G -N BAC_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py  \
-                            --sex_index {SEX_POP} \
-                            --hg_mask_file {MASK_TRACK} \
-                            --hg_contig {CONTIGS} \
-                            --hg_gc_content {GC_TRACK} \
+                            --sex_index {config.SEX_POP} \
+                            --hg_mask_file {config.MASK_TRACK} \
+                            --hg_contig {config.CONTIGS} \
+                            --hg_gc_content {config.GC_TRACK} \
                             --do_dist_analysis True \
                             --bac_list_file /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19 \
                             --input_genomes %s\
@@ -124,10 +119,10 @@ rule GetGC:
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome}", indiv="{genome}"
     run: shell("python /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction/get_gc_correction.py \
-                                --sex_pop_index {SEX_POP}  \
-                                --hg_mask_file {MASK_TRACK} \
-                                --hg_contig_file {CONTIGS} \
-                                --hg_gc_content_file {GC_TRACK} \
+                                --sex_pop_index {config.SEX_POP}  \
+                                --hg_mask_file {config.MASK_TRACK} \
+                                --hg_contig_file {config.CONTIGS} \
+                                --hg_gc_content_file {config.GC_TRACK} \
                                 --GC_width 200 --fn_input_genomes %s  \
                                 --fn_DGV_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/DGV/DGV_variation_hg19.annotation.DTS  \
                                 --fn_superdup_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS  \
