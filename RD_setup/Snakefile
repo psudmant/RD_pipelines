@@ -46,7 +46,7 @@ rule make_sunk_DTS:
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
     run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {config.CONTIGS}  \
-                    --mask_file {config.MASK_TRACK} \
+                    --mask_file {config.SUNK_MASK_TRACK} \
                     --genome  %s  \
                     --out_prefix {DTS_DIR}/{SUNK_DIR}/{config.WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
