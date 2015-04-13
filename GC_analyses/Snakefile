@@ -1,17 +1,17 @@
 import glob
-    
-SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/"
-CONTIGS="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs"
-WND_SIZE=500
-WND_SLIDE=100
-CP2LOCI="~/genomes/annotations/hg19/cp_2_regions/HG19_cp_2_regions.1_based.gt100kb.NO_SEX_CHRMS.bed.txt.gz"
-GC_DTS="~/genomes/GC_tracks/windowed_DTS/HG19/500_bp_slide_GC"
 
-PREFIX="500_bp_"
-INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("input_DTS/500_bp_slide/*")]
+configfile: "config.gc.json"
 
-INPUT_GENOMES = INPUT_GENOMES
-#TYPES = ["wssd", "sunk"])
+SCRIPT_DIR=config["SCRIPT_DIR"]
+CONTIGS=config["CONTIGS"]
+WND_SIZE=config["WND_SIZE"]
+WND_SLIDE=config["WND_SLIDE"]
+CP2LOCI=config["CP2LOCI"]
+GC_DTS=config["GC_DTS"]
+PREFIX=config["PREFIX"]
+INPUT_GENOMES_DIR=config["INPUT_GENOMES_DIR"]
+
+INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_GENOMES_DIR)]
 
 rule all:
     input: "combined_output/wssd_GC_cp.dataframe","combined_output/wssd_GC_cp.summary"
@@ -41,7 +41,7 @@ rule concat_GC_stats:
         F.close()
 
 rule indiv_GC_stats:
-    input:  "input_DTS/500_bp_slide/500_bp_{indiv}"
+    input:  "%s/%s{indiv}" % (INPUT_GENOMES_DIR, PREFIX)
     params: sge_opts="-l h_rss=4G -N GC_{indiv}"
     output: "indiv_GC_analysis/wssd-{indiv}"
     shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"

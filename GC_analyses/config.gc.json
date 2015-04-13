@@ -1,0 +1,10 @@
+{
+    "INPUT_GENOMES_DIR": "DTS_files/500_bp_slide",
+    "WND_SIZE": 500,
+    "WND_SLIDE": 100,
+    "CP2LOCI": "/net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/copy_number_2.hg38.bed.gz",
+    "GC_DTS": "/net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/500_bp_slide_GC_hg38",
+    "PREFIX": "500_bp_",
+    "SCRIPT_DIR": "/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller",
+    "CONTIGS": "/net/eichler/vol23/projects/human_diversity/nobackups/jlhudd/data/hg38/corrected_DTS_windows/hg38_slide/500_bp_windows.pkl.contigs"
+}
