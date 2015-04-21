@@ -52,13 +52,13 @@ rule make_wssd_tracks:
     input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
-    shell: "python bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
 
 rule make_sunk_tracks:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
     params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
-    shell: "python bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs={CONTIGS}"
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs={CONTIGS}"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
@@ -125,7 +125,7 @@ rule BAC:
     input:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     output:"bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     params: sge_opts="-l mfree=10G -N BAC_{genome}", genome=_get_genome_from_wildcards
-    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-test_hg38_read_depth/run_bac_analysis.py \
+    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
