@@ -1,7 +1,5 @@
 import glob
 
-configfile: "config.gc.json"
-
 SCRIPT_DIR=config["SCRIPT_DIR"]
 CONTIGS=config["CONTIGS"]
 WND_SIZE=config["WND_SIZE"]
