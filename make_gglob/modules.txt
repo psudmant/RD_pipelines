@@ -1,0 +1,7 @@
+module use /net/eichler/vol7/home/psudmant/local_modules
+export MOD_PS_SW=/net/eichler/vol7/home/psudmant/local_modules_sw
+
+module load hdf5/1.8.8
+
+export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code
+export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller
