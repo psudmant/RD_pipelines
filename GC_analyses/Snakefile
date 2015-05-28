@@ -37,14 +37,14 @@ rule plot_correct_by_sample:
 rule concat_GC_stats:
     input: fn_inputs=["indiv_GC_analysis/wssd-%s"%indiv for indiv in INPUT_GENOMES]
     output: outf="combined_output/wssd_GC_cp.dataframe", F_sum="combined_output/wssd_GC_cp.summary"
-    params: sge_opts="-l h_rss=2G -N merge_all"
+    params: sge_opts="-l h_rss=2G -N merge_all", input_prefix = "indiv_GC_analysis/wssd-"
     run:
         F = open(output.outf,'w')
         Fsum = open(output.F_sum,'w')
         F.write("indiv GC cp2 total frac_cp2 pop\n")
         for f in input.fn_inputs:
             GC2, total = 0, 0
-            indiv=f.split("-")[1:]
+            indiv=f.replace(params.input_prefix, "")
             type=f.split("/")[-1].split("-")[0]
             for l in open(f):
                 F.write("%s %s %s\n"%(indiv, l.rstrip(),type))
