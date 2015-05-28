@@ -147,7 +147,7 @@ rule GetGC:
     input: "mapping/{genome}/{genome}/wssd_out_file"
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome}", genome=_get_genome_from_wildcards
-    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction/get_gc_correction.py \
+    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol4/home/jlhudd/pipelines/read_depth/distribution_analysis/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \
