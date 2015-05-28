@@ -1,6 +1,8 @@
 import glob
 
 # Load configuration.
+configfile: "config.json"
+
 SEX_POP=config["SEX_POP"]
 MASK_TRACK=config["MASK_TRACK"]
 CONTIGS=config["CONTIGS"]
