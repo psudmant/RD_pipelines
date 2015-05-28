@@ -1,0 +1,45 @@
+configfile: "config.json"
+
+REF = config["reference"]
+
+WSSD_CONTIGS = config[REF]["wssd_wnd_contigs"]
+SUNK_CONTIGS = config[REF]["sunk_wnd_contigs"]
+
+WSSD_DTS = config["wssd_DTS_dir"]
+SUNK_DTS = config["sunk_DTS_dir"]
+GGLOB = config["gglob_dir"]
+
+WND_SIZE = str(config["wnd_size"])
+WND_SLIDE = str(config["wnd_slide"])
+
+CONTIGS = []
+with open(WSSD_CONTIGS, "r") as contigs_file:
+    for line in contigs_file:
+        contig = line.rstrip().split()[0]
+        CONTIGS.append(contig)
+
+FILE_TYPES = ["cp_matrix", "sunk_cp_matrix", "wnd_starts", "wnd_ends", "sunk_wnd_starts", "sunk_wnd_ends"]
+MODULES = config["modules"]
+
+rule all:
+    input: expand("%s/{chr}.{ft}.h5" % GGLOB, chr = CONTIGS, ft = FILE_TYPES)
+    params: sge_opts = ""
+
+
+rule make_gglob:
+    input: "%s/gglob.idx" % GGLOB
+    output: ["%s/{chr}.%s.h5" % (GGLOB, ft) for ft in FILE_TYPES]
+    params: sge_opts = "-N make_gglob -l mfree=20G", chr = "{chr}"
+    shell:
+        """source {MODULES}
+           python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+           --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}"""
+
+rule gglob_setup:
+    input: WSSD_DTS, SUNK_DTS
+    output: "%s/gglob.idx" % GGLOB
+    params: sge_opts = "-N setup_gglob -l mfree=4G"
+    shell:
+        """source {MODULES}
+           python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+           --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init"""

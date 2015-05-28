@@ -1,0 +1,2 @@
+module load anaconda/2.1.0 hdf5/1.8.8 fastahack/0.1 tabix/0.2.6
+export PYTHONPATH=/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code:$PYTHONPATH
