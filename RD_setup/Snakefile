@@ -53,21 +53,21 @@ rule make_wssd_tracks:
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
     priority: 25
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
+    shell: ". ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
 
 rule make_sunk_tracks:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
     params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
     priority: 25
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs={CONTIGS}"
+    shell: ". ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs={CONTIGS}"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
     priority: 20
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run: shell(". ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --sunk_based \
                     --mask_file {SUNK_MASK_TRACK} \
@@ -83,7 +83,7 @@ rule make_DTS:
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
     priority: 20
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run: shell(". ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
                     --genome  %s  \
