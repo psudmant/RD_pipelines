@@ -1,7 +1,9 @@
 import glob
 
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
 # Load configuration.
-configfile: "config.json"
+configfile: SNAKEMAKE_DIR + "/config.json"
 
 SEX_POP=config["SEX_POP"]
 MASK_TRACK=config["MASK_TRACK"]
