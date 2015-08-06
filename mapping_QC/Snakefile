@@ -1,0 +1,18 @@
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SAMPLES = []
+CONTIG = "CH17_1-6261457"
+
+with open("hgdp_bam_list.tab", "r") as reader:
+    for line in reader:
+        SAMPLES.append(line.rstrip().split()[0])
+
+rule all:
+    input: expand("plot/{sample}.%s.pdf" % CONTIG, sample = SAMPLES)
+    params: sge_opts = ""
+
+rule get_contig_read_depth:
+    input: "mapping/{sample}/{sample}/wssd_out_file"
+    output: "plot/{sample}.%s.pdf" % CONTIG
+    params: sge_opts = "-l mfree=8G"
+    shell:
+        """python {SNAKEMAKE_DIR}/get_rd_windows.py {input[0]} {CONTIG} {output[0]}"""
