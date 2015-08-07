@@ -25,13 +25,14 @@ if __name__ == "__main__":
 
     wssd = tables.File(args.wssd_file, "r")
     contig_rd = wssd.getNode("/%s/%s" % (root, args.chr))[args.start:args.end]
-    n_windows = calc_n_windows(contig_rd.shape[0], args.window_slide)
+    contig_len = contig_rd.shape[0] + 1
+    n_windows = calc_n_windows(contig_len, args.window_slide)
     rds = []
     for i in range(n_windows):
         wnd_start = i * args.window_slide
         wnd_end = wnd_start + args.window_size
-        if wnd_end > contig_rd.shape[0]:
-            wnd_end = contig_rd.shape[0]
+        if wnd_end > contig_len:
+            wnd_end = contig_len
         window_rd = contig_rd[i * args.window_slide : wnd_end][:, :, 0].sum()
         rds.append(window_rd / float(wnd_end - wnd_start))
     axes = plt.figure().add_subplot(111)
@@ -43,4 +44,6 @@ if __name__ == "__main__":
     plt.xticks(ticks, tick_labels)
     plt.xlabel("Position (Mb)")
     plt.ylabel("Read depth")
+    ymin, ymax = axes.get_ylim()
+    axes.set_ylim([0, ymax])
     plt.savefig(args.outfile)
