@@ -1,9 +1,11 @@
 # Setup Python environment.
-export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis
-export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts
-export PYTHONPATH=$PYTHONPATH:/net/gs/vol2/home/psudmant/EEE_Lab/projects/common_code
-export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller
-export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction
+export PYTHONPATH=/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis:$PYTHONPATH
+export PYTHONPATH=/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts:$PYTHONPATH
+export PYTHONPATH=/net/gs/vol2/home/psudmant/EEE_Lab/projects/common_code:$PYTHONPATH
+export PYTHONPATH=/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller:$PYTHONPATH
+export PYTHONPATH=/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction:$PYTHONPATH
+
+module purge
 
 module load modules modules-init modules-gs
 module load modules-eichler
