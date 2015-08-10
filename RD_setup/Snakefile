@@ -3,7 +3,7 @@ import glob
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
 # Load configuration.
-configfile: SNAKEMAKE_DIR + "/config.json"
+#configfile: SNAKEMAKE_DIR + "/config.json"
 
 SEX_POP=config["SEX_POP"]
 MASK_TRACK=config["MASK_TRACK"]
@@ -55,7 +55,7 @@ rule make_wssd_tracks:
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
     priority: 25
-    shell: ". ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
+    shell: ". ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
 
 rule make_sunk_tracks:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
