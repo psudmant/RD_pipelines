@@ -68,37 +68,41 @@ rule make_sunk_DTS:
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
     priority: 20
-    run: shell(". ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run:
+        genome = g_to_index[params.indiv]
+        shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --sunk_based \
                     --mask_file {SUNK_MASK_TRACK} \
-                    --genome  %s  \
+                    --genome {genome} \
                     --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
                     --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
                     --wnd_width {WND_WIDTH} \
-                    --param_file \"_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim1-ed-0.per_1kb_params\"" % g_to_index[params.indiv])
+                    --param_file \"_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim1-ed-0.per_1kb_params\"")
 
 rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
     priority: 20
-    run: shell(". ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    run: 
+        genome = g_to_index[params.indiv]
+        shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
-                    --genome  %s  \
+                    --genome {genome}  \
                     --out_prefix {DTS_DIR}/{WSSD_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {WNDS_PKL}\
                     --wnd_contig_file {WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+                    --wnd_width {WND_WIDTH}")
 
 rule get_params:
     input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     params: sge_opts="-l mfree=4G -N params_{genome}", genome=_get_genome_from_wildcards
     priority: 15
-    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
+    shell: """python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
                                     --in_bac_regions {CONTROL_LOCATIONS}  \
                                     --in_contigs {CONTIGS} \
                                     --in_mask {MASK_TRACK} \
