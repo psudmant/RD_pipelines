@@ -1,6 +1,11 @@
 import argparse
 import tables
+import matplotlib
+
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
+
 
 def calc_n_windows(contig_length, wnd_slide):
     return contig_length / wnd_slide + 1
