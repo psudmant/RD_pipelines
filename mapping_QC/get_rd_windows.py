@@ -17,8 +17,8 @@ if __name__ == "__main__":
     parser.add_argument("outfile")
     parser.add_argument("--start", default=0)
     parser.add_argument("--end", default=-1)
-    parser.add_argument("--window_size", default=1000000)
-    parser.add_argument("--window_slide", default=200000)
+    parser.add_argument("--window_size", default=1000000, help="Default: %(default)s")
+    parser.add_argument("--window_slide", default=200000, help="Default: %(default)s")
     parser.add_argument("--corrected", action="store_true")
 
     args = parser.parse_args()
