@@ -5,20 +5,23 @@ shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
 # Load configuration.
 
 if config == {}:
-    configfile: "%s/config.hg19.json" % SNAKEMAKE_DIR
+    configfile: "%s/config.json" % SNAKEMAKE_DIR
 
+REFERENCE=config["REFERENCE"]
 SEX_POP=config["SEX_POP"]
-MASK_TRACK=config["MASK_TRACK"]
-CONTIGS=config["CONTIGS"]
-GC_TRACK=config["GC_TRACK"]
+SPLIT_DIR=config["SPLIT_DIR"]
+
+MASK_TRACK=config["REF_FILES"][REFERENCE]["MASK_TRACK"]
+CONTIGS=config["REF_FILES"][REFERENCE]["CONTIGS"]
+GC_TRACK=config["REF_FILES"][REFERENCE]["GC_TRACK"]
 GC_WIDTH=config["GC_WIDTH"]
-DGV_ANNOTATIONS=config["DGV_ANNOTATIONS"]
-GENOMIC_SUPER_DUP_ANNOTATIONS=config["GENOMIC_SUPER_DUP_ANNOTATIONS"]
-GAP_ANNOTATIONS=config["GAP_ANNOTATIONS"]
-CONTROL_LOCATIONS=config["CONTROL_LOCATIONS"]
-GENOME=config["GENOME"]
+DGV_ANNOTATIONS=config["REF_FILES"][REFERENCE]["DGV_ANNOTATIONS"]
+GENOMIC_SUPER_DUP_ANNOTATIONS=config["REF_FILES"][REFERENCE]["GENOMIC_SUPER_DUP_ANNOTATIONS"]
+GAP_ANNOTATIONS=config["REF_FILES"][REFERENCE]["GAP_ANNOTATIONS"]
+CONTROL_LOCATIONS=config["REF_FILES"][REFERENCE]["CONTROL_LOCATIONS"]
+GENOME=config["REF_FILES"][REFERENCE]["GENOME"]
 WND_WIDTH=config["WND_WIDTH"]
-SUNK_MASK_TRACK=config["SUNK_MASK_TRACK"]
+SUNK_MASK_TRACK=config["REF_FILES"][REFERENCE]["SUNK_MASK_TRACK"]
 
 DTS_DIR="DTS_files"
 BROWSER_TRACK_OUTDIR="tracks"
@@ -26,8 +29,8 @@ BROWSER_TRACK_OUTDIR="tracks"
 WSSD_DIR="500_bp_slide"
 SUNK_DIR="500_bp_sunk_slide"
 
-WNDS_PKL=config["WNDS_PKL"]
-SUNK_WNDS_PKL=config["SUNK_WNDS_PKL"]
+WNDS_PKL=config["REF_FILES"][REFERENCE]["WNDS_PKL"]
+SUNK_WNDS_PKL=config["REF_FILES"][REFERENCE]["SUNK_WNDS_PKL"]
 
 ### g_to_index is a dictionary with samples as keys and wssd_out_file directories as values.
 ### By default, the mapping pipeline will give you folders like this: mapping/{sample}/{prefix}_merged.sorted/wssd_out_file
@@ -35,7 +38,7 @@ SUNK_WNDS_PKL=config["SUNK_WNDS_PKL"]
 ### g_to_index = {sample: i for i, sample in enumerate(genomes)}
 
 g_to_index = {}
-for f in glob.glob("%s/*" % config["SPLIT_DIR"]):
+for f in glob.glob("%s/*" % SPLIT_DIR):
     g = open(f).readline().split()[0]
     g_to_index[g] = f
 
@@ -53,14 +56,14 @@ rule all:
 #     params: sge_opts="-N final_all"
 
 rule make_wssd_tracks:
-    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
+    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
     priority: 25
     shell: "python {SNAKEMAKE_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
 
 rule make_sunk_tracks:
-    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, config["WND_WIDTH"])
+    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
     params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
     priority: 25
