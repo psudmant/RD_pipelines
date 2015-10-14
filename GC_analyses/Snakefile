@@ -3,16 +3,18 @@ import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
-configfile: SNAKEMAKE_DIR + "/config.gc.hg38.json"
+if config == {}:
+    configfile: "%s/config.json" % SNAKEMAKE_DIR
 
-SCRIPT_DIR=config["SCRIPT_DIR"]
-CONTIGS=config["CONTIGS"]
-WND_SIZE=config["WND_SIZE"]
-WND_SLIDE=config["WND_SLIDE"]
-CP2LOCI=config["CP2LOCI"]
-GC_DTS=config["GC_DTS"]
-PREFIX=config["PREFIX"]
-INPUT_GENOMES_DIR=config["INPUT_GENOMES_DIR"]
+REFERENCE = config["reference"]
+SCRIPT_DIR=config["script_dir"]
+CONTIGS=config["ref_files"][REFERENCE]["contigs"]
+WND_SIZE=config["wnd_size"]
+WND_SLIDE=config["wnd_slide"]
+CP2LOCI=config["ref_files"][REFERENCE]["cp2loci"]
+GC_DTS=config["ref_files"][REFERENCE]["gc_dts"]
+PREFIX=config["prefix"]
+INPUT_GENOMES_DIR=config["input_genomes_dir"]
 
 INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_GENOMES_DIR)]
 #INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
