@@ -14,9 +14,9 @@ WND_SLIDE=config["wnd_slide"]
 CP2LOCI=config["ref_files"][REFERENCE]["cp2loci"]
 GC_DTS=config["ref_files"][REFERENCE]["gc_dts"]
 PREFIX=config["prefix"]
-INPUT_GENOMES_DIR=config["input_genomes_dir"]
+INPUT_DTS_DIR=config["input_dts_dir"]
 
-INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_GENOMES_DIR)]
+INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_DTS_DIR)]
 #INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
 
 rule all:
@@ -65,7 +65,7 @@ rule concat_GC_stats:
         F.close()
 
 rule indiv_GC_stats:
-    input:  "%s/%s{indiv}" % (INPUT_GENOMES_DIR, PREFIX)
+    input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
     params: sge_opts="-l h_rss=4G -N GC_{indiv}"
     output: "indiv_GC_analysis/wssd-{indiv}"
     shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
