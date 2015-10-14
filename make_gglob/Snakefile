@@ -1,4 +1,7 @@
-configfile: "config.json"
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+if config == {}:
+    configfile: "%s/config.json" % SNAKEMAKE_DIR
 
 REF = config["reference"]
 
