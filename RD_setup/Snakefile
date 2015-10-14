@@ -4,6 +4,9 @@ SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
 # Load configuration.
 
+if config == {}:
+    configfile: "%s/config.hg19.json" % SNAKEMAKE_DIR
+
 SEX_POP=config["SEX_POP"]
 MASK_TRACK=config["MASK_TRACK"]
 CONTIGS=config["CONTIGS"]
