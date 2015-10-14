@@ -11,11 +11,14 @@ import os
 BEGIN CONSTANTS
 """
 
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
 CUTOFF_SCALE=3000
 WINDOW_SIZE=500
 MAX_MERGE_DIF=0.27
 
-configfile: "config.json"
+if config == {}:
+    configfile: "%s/config.json" % SNAKEMAKE_DIR
 
 SCRIPT_DIR = config["script_dir"]
 DUP_TABIX = config["dup_tabix"]
