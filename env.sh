@@ -16,3 +16,4 @@ module load numpy/1.6.1
 module load scipy/0.10.0
 module load lzo/2.06
 module load zlib/1.2.6
+module load R/2.15.0
