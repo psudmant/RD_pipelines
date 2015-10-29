@@ -19,13 +19,10 @@ INPUT_DTS_DIR=config["input_dts_dir"]
 INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_DTS_DIR)]
 #INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
 
-rule all:
-    input: "combined_output/wssd_GC_cp.dataframe","combined_output/wssd_GC_cp.summary"
-    params: sge_opts="-l h_rss=2G -N all"
+localrules: all
 
-rule GC_plots:
+rule all:
     input: "combined_output/wssd_GC_cp.dataframe.pdf", "combined_output/wssd_GC_cp.summary.pdf"
-    params: sge_opts="-l h_rss=2G -N GC_plots"
 
 rule plot_correct_by_GC_window:
     input: "combined_output/wssd_GC_cp.dataframe"
