@@ -7,6 +7,9 @@ shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
 if config == {}:
     configfile: "%s/config.json" % SNAKEMAKE_DIR
 
+if not os.path.exists("log"):
+    os.makedirs("log")
+
 REFERENCE=config["REFERENCE"]
 SEX_POP=config["SEX_POP"]
 SPLIT_DIR=config["SPLIT_DIR"]
