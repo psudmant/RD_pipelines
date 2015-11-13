@@ -1,7 +1,7 @@
 {
 "REFERENCE": "hg19",
-"SEX_POP": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/sex_info.txt",
-"SPLIT_DIR": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/index",
+"SEX_POP": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/remap_testing/sex_info.txt",
+"SPLIT_DIR": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/remap_testing/index",
 "WND_WIDTH": 500,
 "GC_WIDTH": 200,
 "REF_FILES":
@@ -10,7 +10,7 @@
 	{
 	  "MASK_TRACK": "~psudmant/genomes/mask_tracks/HG19-noWM-pad36",
 	  "SUNK_MASK_TRACK": "/net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts",
-	  "CONTIGS": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/hg19_contigs.txt",
+	  "CONTIGS": "~psudmant/genomes/contigs/hg19_contigs.txt",
 	  "GC_TRACK": "~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content",
 	  "WNDS_PKL": "/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl",
 	  "SUNK_WNDS_PKL": "/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl",
