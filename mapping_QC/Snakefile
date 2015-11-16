@@ -1,18 +1,25 @@
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 SAMPLES = []
-CONTIG = "CH17_1-6261457"
+CONTIGS = ["chr" + str(x) for x in list(range(1,23)) + ["X", "Y"]]
 
-with open("hgdp_bam_list.tab", "r") as reader:
+with open("test_samples.all.txt", "r") as reader:
     for line in reader:
         SAMPLES.append(line.rstrip().split()[0])
 
 rule all:
-    input: expand("plot/{sample}.%s.pdf" % CONTIG, sample = SAMPLES)
+    input: expand("combined_plot/{sample}.combined.pdf", sample = SAMPLES, contig = CONTIGS)
     params: sge_opts = ""
+
+rule merge_by_samples:
+    input: ["plot/{sample}.%s.pdf" % contig for contig in CONTIGS]
+    output: "combined_plot/{sample}.combined.pdf"
+    params: sge_opts = "-l mfree=4G"
+    shell:
+        "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output} {input}"
 
 rule get_contig_read_depth:
     input: "mapping/{sample}/{sample}/wssd_out_file"
-    output: "plot/{sample}.%s.pdf" % CONTIG
+    output: "plot/{sample}.{contig}.pdf"
     params: sge_opts = "-l mfree=8G"
     shell:
-        """python {SNAKEMAKE_DIR}/get_rd_windows.py {input[0]} {CONTIG} {output[0]}"""
+        """python {SNAKEMAKE_DIR}/get_rd_windows.py {input[0]} {wildcards.contig} {output[0]}"""
