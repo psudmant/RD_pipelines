@@ -47,6 +47,17 @@ for f in glob.glob("%s/*" % SPLIT_DIR):
 
 genomes = sorted(g_to_index.keys())
 
+# Validate SEX_POP file
+with open(SEX_POP, "r") as sex_pop:
+    for i, line in enumerate(sex_pop):
+        sn, sex, pop = line.rstrip().split()
+        if sn not in g_to_index.keys():
+            print("Line %d: %s sample not in index" % (i, sn))
+            sys.exit(1)
+        elif sex not in ["M", "F"]:
+            print("Line %d: Sex not valid: %s (sex must be M or F and columns must be sample, sex, pop)" % (i, sex))
+            sys.exit(1)
+
 def _get_genome_from_wildcards(wildcards):
     return g_to_index[wildcards.genome]
 
