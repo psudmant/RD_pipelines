@@ -1,6 +1,6 @@
 {
-	"wssd_DTS_dir": "/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA/500_bp_slide",
-	"sunk_DTS_dir": "/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA/500_bp_sunk_slide",
+	"wssd_DTS_dir": "DTS_files/500_bp_slide",
+	"sunk_DTS_dir": "DTS_files/500_bp_sunk_slide",
 	"gglob_dir": "gglob",
 	"wnd_slide": 100,
 	"wnd_size": 500,
