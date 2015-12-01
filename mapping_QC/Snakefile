@@ -1,13 +1,20 @@
 import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+if config == {}:
+    configfile: "%s/config.json" % SNAKEMAKE_DIR
+
+SAMPLE_LIST = config["sample_list"]
+MASKED_COUNT = config["masked_count"]
+
 SAMPLES = []
 CONTIGS = ["chr" + str(x) for x in list(range(1,23)) + ["X", "Y"]]
 
 if not os.path.exists("log"):
     os.makedirs("log")
 
-with open("cambodian.bam.tab", "r") as reader:
+with open(SAMPLE_LIST, "r") as reader:
     for line in reader:
         SAMPLES.append(line.rstrip().split()[0])
 
@@ -21,7 +28,7 @@ rule get_0depth_count:
     output: "zero_depth_QC.pdf"
     params: sge_opts="-l mfree=16G -N zero_depth"
     shell:
-        "python {SNAKEMAKE_DIR}/get_0read_bases.py {output} --wssd_files {input} --contigs {CONTIGS}"
+        "python {SNAKEMAKE_DIR}/get_0read_bases.py {output} --wssd_files {input} --contigs {CONTIGS} --masked_count {MASKED_COUNT}"
 
 rule merge_by_samples:
     input: ["plot/{sample}.%s.pdf" % contig for contig in CONTIGS]
