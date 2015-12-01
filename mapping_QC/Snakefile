@@ -1,14 +1,27 @@
+import os
+
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 SAMPLES = []
 CONTIGS = ["chr" + str(x) for x in list(range(1,23)) + ["X", "Y"]]
 
-with open("test_samples.all.txt", "r") as reader:
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+with open("cambodian.bam.tab", "r") as reader:
     for line in reader:
         SAMPLES.append(line.rstrip().split()[0])
 
+localrules: all
+
 rule all:
-    input: expand("combined_plot/{sample}.combined.pdf", sample = SAMPLES, contig = CONTIGS)
-    params: sge_opts = ""
+    input: expand("combined_plot/{sample}.combined.pdf", sample = SAMPLES, contig = CONTIGS), "zero_depth_QC.pdf"
+
+rule get_0depth_count:
+    input: ["mapping/%s/%s/wssd_out_file" % (sample, sample) for sample in SAMPLES]
+    output: "zero_depth_QC.pdf"
+    params: sge_opts="-l mfree=16G -N zero_depth"
+    shell:
+        "python {SNAKEMAKE_DIR}/get_0read_bases.py {output} --wssd_files {input} --contigs {CONTIGS}"
 
 rule merge_by_samples:
     input: ["plot/{sample}.%s.pdf" % contig for contig in CONTIGS]
