@@ -100,15 +100,15 @@ if __name__ == "__main__":
     if args.out_pdf is not None:
         f, ax = plt.subplots(figsize=(6, 0.5*len(wssd_dat.SAMPLE.unique())+1))
         sns.set_color_codes("pastel")
-        wssd_dat_summary = wssd_dat.ix[wssd_dat.CONTIG == "all",]
+        wssd_dat_summary = wssd_dat.ix[wssd_dat.CONTIG == "all",] - n_masked
         sns.barplot(x="NZERO", y="SAMPLE", data = wssd_dat_summary.sort("NZERO", ascending=False))
-        ax.set_title("Zero-depth base count QC")
+        ax.set_title("Zero-depth unmasked base count QC")
         ticks = ax.get_xticks().tolist()
         tick_labels = map(lambda x: round(x/1000000., 1), ticks)
         plt.xticks(ticks, tick_labels)
 
         ax.set(ylabel = "", xlabel="Count of 0-depth bases (Mb)")
-        plt.axvline(x=n_masked, linewidth=2, color="k", label="hg19 masked bases")
+        #plt.axvline(x=n_masked, linewidth=2, color="k", label="hg19 masked bases")
         #sns.despine(left=True)
         plt.tight_layout()
         plt.savefig(args.out_pdf)
