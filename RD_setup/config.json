@@ -1,7 +1,7 @@
 {
 "REFERENCE": "hg19",
-"SEX_POP": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/remap_testing/sex_info.txt",
-"SPLIT_DIR": "/net/eichler/vol24/projects/human_diversity/nobackups/bnelsj/ocn_akey/remap_testing/index",
+"SEX_POP": "sex_info",
+"SPLIT_DIR": "index",
 "WND_WIDTH": 500,
 "GC_WIDTH": 200,
 "REF_FILES":
