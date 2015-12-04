@@ -100,7 +100,8 @@ if __name__ == "__main__":
     if args.out_pdf is not None:
         f, ax = plt.subplots(figsize=(6, 0.5*len(wssd_dat.SAMPLE.unique())+1))
         sns.set_color_codes("pastel")
-        wssd_dat_summary = wssd_dat.ix[wssd_dat.CONTIG == "all",] - n_masked
+        wssd_dat_summary = wssd_dat.ix[wssd_dat.CONTIG == "all",]
+        wssd_dat_summary.NZERO -= n_masked
         sns.barplot(x="NZERO", y="SAMPLE", data = wssd_dat_summary.sort("NZERO", ascending=False))
         ax.set_title("Zero-depth unmasked base count QC")
         ticks = ax.get_xticks().tolist()
