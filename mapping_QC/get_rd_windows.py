@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("--window_size", default=1000000, help="Default: %(default)s")
     parser.add_argument("--window_slide", default=200000, help="Default: %(default)s")
     parser.add_argument("--corrected", action="store_true")
+    parser.add_argument("--max_read_depth", default = None, type=float)
 
     args = parser.parse_args()
 
@@ -50,5 +51,9 @@ if __name__ == "__main__":
     plt.xlabel("Position (Mb)")
     plt.ylabel("Read depth")
     ymin, ymax = axes.get_ylim()
+
+    if args.max_read_depth != -1:
+        ymax = args.max_read_depth
+
     axes.set_ylim([0, ymax])
     plt.savefig(args.outfile)
