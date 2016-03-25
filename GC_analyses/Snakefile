@@ -65,7 +65,7 @@ rule indiv_GC_stats:
     input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
     params: sge_opts="-l h_rss=4G -N GC_{indiv}"
     output: "indiv_GC_analysis/wssd-{indiv}"
-    shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
+    shell:  "source ~jlhudd/pipelines/read_depth/env.sh;python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
 
 rule clean:
     shell: "rm -rf indiv_GC_analysis combined_output ./log; mkdir ./log"

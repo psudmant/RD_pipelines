@@ -4,7 +4,7 @@
 	"gglob_dir": "gglob",
 	"wnd_slide": 100,
 	"wnd_size": 500,
-	"modules": "modules.txt",
+	"modules": "RD_pipelines/make_gglob/modules.txt",
 	"reference": "hg19",
 	"hg19": {
 		"wssd_wnd_contigs": "/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs",
