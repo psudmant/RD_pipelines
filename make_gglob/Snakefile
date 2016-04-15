@@ -36,7 +36,7 @@ rule make_gglob:
     shell:
         """
 	. ~jlhudd/pipelines/read_depth/env.sh
-	source {MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+	source {SNAKEMAKE_DIR}/{MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
 	--wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
 	"""
 
@@ -47,6 +47,7 @@ rule gglob_setup:
     shell:
         """
 	. ~jlhudd/pipelines/read_depth/env.sh
-    	source {MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
-           --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init
+    	source {SNAKEMAKE_DIR}/{MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py \
+        --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} \
+        --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init
 	"""
