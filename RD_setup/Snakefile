@@ -71,6 +71,7 @@ rule make_wssd_tracks:
     input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
     params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
+    benchmark: "benchmarks/make_wssd_tracks.{genome}.txt"
     priority: 25
     shell: "source ~jlhudd/pipelines/read_depth/env.sh ; python {SNAKEMAKE_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
 
@@ -78,6 +79,7 @@ rule make_sunk_tracks:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
     output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
     params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
+    benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
     priority: 25
     shell: "source ~jlhudd/pipelines/read_depth/env.sh;python {SNAKEMAKE_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs {CONTIGS}"
 
@@ -85,6 +87,7 @@ rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
+    benchmark: "benchmarks/make_sunk_DTS.{genome}.txt"
     priority: 20
     run:
         genome = g_to_index[params.indiv]
@@ -103,6 +106,7 @@ rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
+    benchmark: "benchmarks/make_DTS.{genome}.txt"
     priority: 20
     run: 
         genome = g_to_index[params.indiv]
@@ -119,6 +123,7 @@ rule get_params:
     input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     params: sge_opts="-l mfree=4G -N params_{genome}", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/get_params.{genome}.txt"
     priority: 15
     shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
                                     --in_bac_regions {CONTROL_LOCATIONS}  \
@@ -138,6 +143,7 @@ rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     params: sge_opts="-l mfree=14G -N wssd_{genome}", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/wssd_cc.{genome}.txt"
     priority: 10
     shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
@@ -154,6 +160,7 @@ rule BAC:
     input:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     output:"bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     params: sge_opts="-l mfree=10G -N BAC_{genome}", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/bac.{genome}.txt"
     priority: 5
     shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
@@ -170,6 +177,7 @@ rule GetGC:
     input: "mapping/{genome}/{genome}/wssd_out_file"
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome}", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/getgc.{genome}.txt"
     shell: """. ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol4/home/jlhudd/pipelines/read_depth/distribution_analysis/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
