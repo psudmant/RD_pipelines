@@ -1,0 +1,57 @@
+---
+REFERENCE: hg38
+SEX_POP: sex_info
+SPLIT_DIR: index
+WND_WIDTH: 500
+GC_WIDTH: 200
+
+REF_FILES:
+    hg19:
+        MASK_TRACK: ~psudmant/genomes/mask_tracks/HG19-noWM-pad36
+        SUNK_MASK_TRACK: /net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts
+        CONTIGS: ~psudmant/genomes/contigs/hg19_contigs.txt
+        GC_TRACK: ~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content
+        WNDS_PKL: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19
+        GENOME: /net/eichler/vol7/home/psudmant/genomes/fastas/hg19/hg19.fa
+        DGV_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/DGV/DGV_variation_hg19.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS
+        GAP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS
+    hg19_canonical:
+        MASK_TRACK: ~psudmant/genomes/mask_tracks/HG19-noWM-pad36
+        SUNK_MASK_TRACK: /net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts
+        CONTIGS: ~psudmant/genomes/contigs/hg19_contigs.txt
+        GC_TRACK: ~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content
+        WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19
+        GENOME: /net/eichler/vol7/home/psudmant/genomes/fastas/hg19/hg19.fa
+        DGV_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/DGV/DGV_variation_hg19.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS
+        GAP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS
+
+    hg38:
+        MASK_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_noWM_pad36
+        SUNK_MASK_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
+        CONTIGS: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
+        GC_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_gc_w200.GC_content
+        WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/control_location_hg38
+        GENOME: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+        DGV_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DGV_variation_hg38.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
+        GAP_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
+    hg38_canonical:
+        MASK_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_noWM_pad36
+        SUNK_MASK_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
+        CONTIGS: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
+        GC_TRACK: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/hg38_gc_w200.GC_content
+        WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/control_location_hg38
+        GENOME: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+        DGV_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DGV_variation_hg38.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
+        GAP_ANNOTATIONS: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
