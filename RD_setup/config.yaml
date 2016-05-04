@@ -1,5 +1,5 @@
 ---
-REFERENCE: hg38
+REFERENCE: hg19_canonical
 SEX_POP: sex_info
 SPLIT_DIR: index
 WND_WIDTH: 500
@@ -21,7 +21,7 @@ REF_FILES:
     hg19_canonical:
         MASK_TRACK: ~psudmant/genomes/mask_tracks/HG19-noWM-pad36
         SUNK_MASK_TRACK: /net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts
-        CONTIGS: ~psudmant/genomes/contigs/hg19_contigs.txt
+        CONTIGS: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_slide/500_bp_windows.pkl.contigs
         GC_TRACK: ~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content
         WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_slide/500_bp_windows.pkl
         SUNK_WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_sunk_slide/500_bp_windows.sunks.pkl
