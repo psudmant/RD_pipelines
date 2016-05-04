@@ -19,9 +19,9 @@ REF_FILES:
         GENOMIC_SUPER_DUP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS
         GAP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS
     hg19_canonical:
-        MASK_TRACK: ~psudmant/genomes/mask_tracks/HG19-noWM-pad36
+        MASK_TRACK: /net/eichler/vol25/projects/simons_genome_project/nobackup/bnelsj/from_cloud/HG19-noWM-pad36.no_random
         SUNK_MASK_TRACK: /net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts
-        CONTIGS: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_slide/500_bp_windows.pkl.contigs
+        CONTIGS: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/mrsfastULTRA/hg19_masked.fai
         GC_TRACK: ~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content
         WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_slide/500_bp_windows.pkl
         SUNK_WNDS_PKL: /net/eichler/vol2/eee_shared/assemblies/hg19/indexes/hg19_canonical/DTS_windows/hg19_sunk_slide/500_bp_windows.sunks.pkl
