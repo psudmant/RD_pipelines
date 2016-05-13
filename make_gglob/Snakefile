@@ -3,6 +3,9 @@ SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 if config == {}:
     configfile: "%s/config.json" % SNAKEMAKE_DIR
 
+if not os.path.exists("log"):
+    os.makedirs("log")
+
 REF = config["reference"]
 
 WSSD_CONTIGS = config[REF]["wssd_wnd_contigs"]
