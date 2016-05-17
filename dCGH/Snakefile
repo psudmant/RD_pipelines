@@ -71,8 +71,8 @@ samples = list(set(samples)-set(bad_GC))
 N_SUBSETS=100
 SUBSETS=range(N_SUBSETS)
 
-#references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
-references = samples
+references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
+#references = samples
 
 EXCLUDE=[]
 
