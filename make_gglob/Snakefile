@@ -37,7 +37,7 @@ rule all:
 rule make_gglob:
     input: "%s/gglob.idx" % GGLOB
     output: ["%s/{chr}.%s.h5" % (GGLOB, ft) for ft in FILE_TYPES]
-    params: sge_opts = "-N make_gglob -l mfree=20G", chr = "{chr} -l h_rt=00:30:00"
+    params: sge_opts = "-N make_gglob -l mfree=4G -l h_rt=00:30:00", chr = "{chr}"
     shell:
         """
 	. ~jlhudd/pipelines/read_depth/env.sh

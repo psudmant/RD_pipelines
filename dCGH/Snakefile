@@ -225,7 +225,7 @@ rule make_bed_indiv_refined_calls:
 rule refine_calls:
     input: table="call_tables_merged_per_indiv/{sample}.segs.gz", test_DTS="%s/500_bp_{sample}" % DTS_DIR, ref_DTS=["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references]
     output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
-    params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=1:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
+    params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=1:00:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
     shell: "python {SCRIPT_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
 #--limit_to_chr chr20 
 
