@@ -1,3 +1,5 @@
+import os
+
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
 if config == {}:
@@ -27,15 +29,15 @@ with open(WSSD_CONTIGS, "r") as contigs_file:
 FILE_TYPES = ["cp_matrix", "sunk_cp_matrix", "wnd_starts", "wnd_ends", "sunk_wnd_starts", "sunk_wnd_ends"]
 MODULES = config["modules"]
 
+localrules: all
+
 rule all:
     input: expand("%s/{chr}.{ft}.h5" % GGLOB, chr = CONTIGS, ft = FILE_TYPES)
-    params: sge_opts = ""
-
 
 rule make_gglob:
     input: "%s/gglob.idx" % GGLOB
     output: ["%s/{chr}.%s.h5" % (GGLOB, ft) for ft in FILE_TYPES]
-    params: sge_opts = "-N make_gglob -l mfree=20G", chr = "{chr}"
+    params: sge_opts = "-N make_gglob -l mfree=20G", chr = "{chr} -l h_rt=00:30:00"
     shell:
         """
 	. ~jlhudd/pipelines/read_depth/env.sh
@@ -46,7 +48,7 @@ rule make_gglob:
 rule gglob_setup:
     input: WSSD_DTS, SUNK_DTS
     output: "%s/gglob.idx" % GGLOB
-    params: sge_opts = "-N setup_gglob -l mfree=4G"
+    params: sge_opts = "-N setup_gglob -l mfree=4G -l h_rt=00:30:00"
     shell:
         """
 	. ~jlhudd/pipelines/read_depth/env.sh
