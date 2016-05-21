@@ -67,6 +67,8 @@ for key in BAC_DIRS.keys():
 def _get_genome_from_wildcards(wildcards):
     return g_to_index[wildcards.genome]
 
+localrules: all, get_WSSD_cc
+
 rule all:
     input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["wssd", "sunk"])
     params: sge_opts="-l mfree=6G -N final_all"
@@ -141,12 +143,11 @@ rule make_DTS:
 
 rule get_WSSD_cc:
     input: expand("primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2", genome=genomes)
-    params: sge_opts=""
 
 rule WSSD_cc:
     input: lambda wildcards: BAC_DIRS[wildcards.genome][2] + "/%s/" % wildcards.genome + SUMMARY_STATS_DIRS[wildcards.genome] + "/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
-    params: sge_opts="-l mfree=14G -N wssd_{genome}", genome=_get_genome_from_wildcards
+    params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     priority: 10
     shell: """. ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
