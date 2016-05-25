@@ -27,21 +27,21 @@ rule all:
 rule plot_correct_by_GC_window:
     input: "combined_output/wssd_GC_cp.dataframe"
     output: "combined_output/wssd_GC_cp.dataframe.pdf"
-    params: sge_opts = "-N plot_correct -l mfree=8G"
+    params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
     shell:
         "Rscript {SNAKEMAKE_DIR}/scripts/plot_GC.R {input} {output}"
 
 rule plot_correct_by_sample:
     input: "combined_output/wssd_GC_cp.summary"
     output: "combined_output/wssd_GC_cp.summary.pdf"
-    params: sge_opts = "-N plot_correct -l mfree=8G"
+    params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
     shell:
         "Rscript {SNAKEMAKE_DIR}/scripts/plot_GC_summary.R {input} {output}"
 
 rule concat_GC_stats:
     input: fn_inputs=["indiv_GC_analysis/wssd-%s"%indiv for indiv in INPUT_GENOMES]
     output: outf="combined_output/wssd_GC_cp.dataframe", F_sum="combined_output/wssd_GC_cp.summary"
-    params: sge_opts="-l h_rss=2G -N merge_all", input_prefix = "indiv_GC_analysis/wssd-"
+    params: sge_opts="-l mfree=2G -l h_rt=00:30:00 -N merge_all", input_prefix = "indiv_GC_analysis/wssd-"
     run:
         F = open(output.outf,'w')
         Fsum = open(output.F_sum,'w')
@@ -63,7 +63,7 @@ rule concat_GC_stats:
 
 rule indiv_GC_stats:
     input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
-    params: sge_opts="-l h_rss=4G -N GC_{indiv}"
+    params: sge_opts="-l mfree=4G -N GC_{indiv} -l h_rt=00:30:00"
     output: "indiv_GC_analysis/wssd-{indiv}"
     shell:  "source ~jlhudd/pipelines/read_depth/env.sh;python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
 
