@@ -99,12 +99,31 @@ localrules: all
 rule all:
     input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
 
+rule plot_call_size_distribution:
+    input: "final_calls/final_calls.bed"
+    output: "call_size.hist.gt100kbp.pdf", "call_size.hist.lt100kbp.pdf"
+    params: sge_opts="-l h_rt=0:5:00"
+    run:
+        import matplotlib as mpl
+        mpl.use("Agg")
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        import seaborn as sns
+
+        dat = pd.read_table(input[0], header=None)
+        dat.columns = ["chr", "start", "end"]
+        dat["Call size"] = dat.end - dat.start
+        sns.distplot(dat["Call size"][dat["Call size"] >= 100000], bins=100, kde=False, axlabel="Call size (>100 kbp)")
+        plt.savefig(output[0])
+        plt.clf()
+        sns.distplot(dat["Call size"][dat["Call size"] < 100000], bins=100, kde=False, axlabel="Call size (<100 kbp)")
+        plt.savefig(output[1])
+
 rule export_callset:
     input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf.gz", "final_calls/final_calls.filter_data"    
     output: "exported_callsets/%s/final_calls.bed"%datestr
     params: outdir="exported_callsets/%s"%(datestr), sge_opts="-l h_rt=0:30:00"
     shell: "cp {input} {params.outdir}"
-
 
 rule make_table_of_simple_genotypes:
     input: "final_calls/final_genotypes"
@@ -156,7 +175,7 @@ rule genotype_refine_breakpoints_by_chr_subset:
     input: "all_resolved_calls/all_resolved_calls.gz"
     output: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
     params: contig="{contig}", 
-            sge_opts="-l mfree=20G -N {contig}_{k}_genotyping -l h_rt=1:00:00", 
+            sge_opts="-l mfree=20G -N {contig}_{k}_genotyping -l h_rt=5:00:00", 
             curr_n="{k}", 
             plot_out_dir="final_calls/by_chr/{contig}",
             subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
@@ -164,14 +183,14 @@ rule genotype_refine_breakpoints_by_chr_subset:
 
 rule bgzip_all_refined_calls:       
     input: "all_resolved_calls/all_resolved_calls"
-    params: sge_opts="-l mfree=10G -N clustering_all -l h_rt=1:00:00"
+    params: sge_opts="-l mfree=10G -N clustering_all -l h_rt=2:00:00"
     output: "all_resolved_calls/all_resolved_calls.gz"
     shell: "bgzip {input}"
 
 rule cat_all_refined_calls:
     input: expand("resolved_calls_per_indiv/{sample}.segs.sorted.gz" , sample=samples)
     output: "all_resolved_calls/all_resolved_calls"
-    params: sge_opts="-l mfree=6G -N merging_all -l h_rt=1:00:00"
+    params: sge_opts="-l mfree=6G -N merging_all -l h_rt=2:00:00"
     run:
         F_out = open(output[0],'w') 
         F_out.write("chr\tstart\tend\tlog_likelihood\tindiv\tcalled_refs\n")
@@ -225,7 +244,7 @@ rule make_bed_indiv_refined_calls:
 rule refine_calls:
     input: table="call_tables_merged_per_indiv/{sample}.segs.gz", test_DTS="%s/500_bp_{sample}" % DTS_DIR, ref_DTS=["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references]
     output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
-    params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=1:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
+    params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=2:00:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
     shell: "python {SCRIPT_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
 #--limit_to_chr chr20 
 

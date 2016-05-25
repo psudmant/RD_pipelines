@@ -1,0 +1,36 @@
+import os
+import pandas as pd
+import matplotlib as mpl
+mpl.use("Agg")
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+shell.executable("/bin/bash")
+shell.prefix("source %s/config.sh; set -eo pipefail; " % SNAKEMAKE_DIR)
+
+#if config == {}:
+#    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+localrules: all
+
+rule all:
+    input: "call_size_distribution.pdf"
+
+rule plot_size_distribution:
+    input: "final_calls.bed"
+    output: "call_size_distribution.pdf", "call_size_distribution.lt100Kbp.pdf"
+    params: sge_opts=""
+    run:
+        dat = pd.read_table(input[0], header=None)
+        dat.columns = ["chr", "start", "end"]
+        dat["size"] = dat.end - dat.start
+        sns_plot = sns.distplot(dat["size"], kde=False)
+        plt.savefig(output[0])
+        plt.clf()
+        sns_plot = sns.distplot(dat.loc[dat["size"] < 100000]["size"], kde=False)
+        plt.savefig(output[1])
