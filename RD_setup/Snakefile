@@ -146,7 +146,7 @@ rule WSSD_cc:
     params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/wssd_cc.{genome}.txt"
     priority: 10
-    shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
+    shell: """source ~jlhudd/pipelines/read_depth/env.sh; python wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
