@@ -1,7 +1,7 @@
 import glob
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
-shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
+shell.prefix(". {SNAKEMAKE_DIR}/env.sh; ")
 # Load configuration.
 
 if config == {}:
@@ -146,7 +146,7 @@ rule WSSD_cc:
     params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/wssd_cc.{genome}.txt"
     priority: 10
-    shell: """source ~jlhudd/pipelines/read_depth/env.sh; python wssd_make_combined_adjusted_tracks.py \
+    shell: """python {SNAKEMAKE_DIR}/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
@@ -163,7 +163,7 @@ rule BAC:
     params: sge_opts="-l mfree=10G -N BAC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/bac.{genome}.txt"
     priority: 5
-    shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py \
+    shell: """python {SNAKEMAKE_DIR}/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
@@ -179,7 +179,7 @@ rule GetGC:
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/getgc.{genome}.txt"
-    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python /net/eichler/vol4/home/jlhudd/pipelines/read_depth/distribution_analysis/get_gc_correction.py \
+    shell: """python {SNAKEMAKE_DIR}/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \

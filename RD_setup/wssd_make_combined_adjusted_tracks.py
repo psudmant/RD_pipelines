@@ -10,11 +10,13 @@ import numpy as np
 import tables
 import pygr.Data
 
-from kitz_wssd.wssd_common import *
+from wssd_common import *
 from wssd_pw_common import *
-import genome_management.kg_file_handling as kgf
+import kg_file_handling as kgf
 #def get_loc(msk,wssd,start,end,chr):
 
+print kgf.__file__
+print tables.__file__
 
 def mkdir(dir,file):
 
@@ -176,11 +178,12 @@ if __name__=='__main__':
 		#2 make new wssd track file
 		print fn_corrected_depths_out
 		adjusted_wssd_track = WssdFile(o.fnContigLengths,
-																	fnWssd=fn_corrected_depths_out,
-																	overwrite=True,
-																	openMode='w',
-																	compression=True,
-																	datatype=tables.Float16Atom()) 
+                                       fnWssd=fn_corrected_depths_out,
+                                       overwrite=True,
+                                       openMode='w',
+                                       compression=True,
+                                       datatype=tables.Atom.from_dtype(np.dtype(np.float16))
+                                      )
 		
 		grpName = "wssd.combined_corrected"
 
