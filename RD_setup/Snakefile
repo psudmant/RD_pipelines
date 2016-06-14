@@ -1,6 +1,7 @@
 import glob
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../scripts"
 shell.prefix(". {SNAKEMAKE_DIR}/env.sh; ")
 # Load configuration.
 
@@ -74,7 +75,7 @@ rule make_wssd_tracks:
     params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N wssd_track_{genome}"
     benchmark: "benchmarks/make_wssd_tracks.{genome}.txt"
     priority: 25
-    shell: "source ~jlhudd/pipelines/read_depth/env.sh ; python {SNAKEMAKE_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
+    shell: "python {SCRIPT_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
 
 rule make_sunk_tracks:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
@@ -82,7 +83,12 @@ rule make_sunk_tracks:
     params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N sunk_track_{genome}"
     benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
     priority: 25
-    shell: "source ~jlhudd/pipelines/read_depth/env.sh;python {SNAKEMAKE_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs {CONTIGS}"
+    shell: "python {SCRIPT_DIR}/bw_builder.py \
+                --out_dir {BROWSER_TRACK_OUTDIR} \
+                --fn_DTS {input} \
+                --contigs {SUNK_WNDS_PKL}.contigs \
+                --wnd_size {WND_WIDTH} \
+                --fn_out sunk --output_contigs {CONTIGS}"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
@@ -92,7 +98,7 @@ rule make_sunk_DTS:
     priority: 20
     run:
         genome = g_to_index[params.indiv]
-        shell("source ~jlhudd/pipelines/read_depth/env.sh;python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+        shell("python {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --sunk_based \
                     --mask_file {SUNK_MASK_TRACK} \
@@ -111,7 +117,7 @@ rule make_DTS:
     priority: 20
     run: 
         genome = g_to_index[params.indiv]
-        shell("source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+        shell("python {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
                     --genome {genome}  \
@@ -126,7 +132,7 @@ rule get_params:
     params: sge_opts="-l mfree=4G -l h_rt=6:00:00 -N params_{genome}", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/get_params.{genome}.txt"
     priority: 15
-    shell: """source ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
+    shell: """python {SCRIPT_DIR}/analyze_control_regions.py  \
                                     --in_bac_regions {CONTROL_LOCATIONS}  \
                                     --in_contigs {CONTIGS} \
                                     --in_mask {MASK_TRACK} \
@@ -146,7 +152,7 @@ rule WSSD_cc:
     params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/wssd_cc.{genome}.txt"
     priority: 10
-    shell: """python {SNAKEMAKE_DIR}/wssd_make_combined_adjusted_tracks.py \
+    shell: """python {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
@@ -163,7 +169,7 @@ rule BAC:
     params: sge_opts="-l mfree=10G -N BAC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/bac.{genome}.txt"
     priority: 5
-    shell: """python {SNAKEMAKE_DIR}/run_bac_analysis.py \
+    shell: """python {SCRIPT_DIR}/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
@@ -179,7 +185,7 @@ rule GetGC:
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/getgc.{genome}.txt"
-    shell: """python {SNAKEMAKE_DIR}/get_gc_correction.py \
+    shell: """python {SCRIPT_DIR}/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \

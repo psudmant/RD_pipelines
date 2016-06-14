@@ -3,7 +3,7 @@ import os.path
 import cPickle
 import pickle 
 from optparse import OptionParser
-from kitz_wssd.wssd_common_v2 import *
+from wssd_common_v2 import *
 from wssd_pw_common import *
 from  ml_get_cpn import *
 from sys import stderr

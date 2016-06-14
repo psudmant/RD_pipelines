@@ -14,10 +14,6 @@ import numpy as np
 import tables
 
 import scipy
-#import scipy.optimize
-#from scipy.special import gamma
-#from scipy.integrate import quadrature
-#from scipy.integrate import quad
 from scipy.stats import norm,poisson
 
 from math import *
