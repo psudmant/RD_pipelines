@@ -88,9 +88,9 @@ class genome_data:
         
         
         if self.sunk_based:
-            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,0,1]
+            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,0,1].astype(np.float64)
         else:
-            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,:,0].sum(1)
+            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,:,0].sum(1).astype(np.float64)
 
         
         mask_chr = mask_chr==None and chr or mask_chr
