@@ -15,9 +15,6 @@ from wssd_pw_common import *
 import kg_file_handling as kgf
 #def get_loc(msk,wssd,start,end,chr):
 
-print kgf.__file__
-print tables.__file__
-
 def mkdir(dir,file):
 
   ls_dir = os.listdir(dir)
