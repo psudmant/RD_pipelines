@@ -2,6 +2,8 @@ import argparse
 import tables
 import matplotlib
 
+import numpy as np
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -39,7 +41,7 @@ if __name__ == "__main__":
         wnd_end = wnd_start + args.window_size
         if wnd_end > contig_len:
             wnd_end = contig_len
-        window_rd = contig_rd[i * args.window_slide : wnd_end][:, :, 0].sum()
+        window_rd = contig_rd[i * args.window_slide : wnd_end][:, :, 0].astype(np.float64).sum()
         rds.append(window_rd / float(wnd_end - wnd_start))
     axes = plt.figure().add_subplot(111)
     plt.plot(rds)
