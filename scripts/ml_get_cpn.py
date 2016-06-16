@@ -558,7 +558,7 @@ def analyze_locations(ml,in_locations,fn_genome_analysis_dir,fn_contigs,fn_mask)
         if(location[0] == "#"):continue
         (name,chr,start,end) = location.split()
         
-        corrected_depth = combined_adjusted_wssd.depth["wssd.combined_corrected"][chr][start:end,:,0].sum(1)
+        corrected_depth = np.nan_to_num(combined_adjusted_wssd.depth["wssd.combined_corrected"][chr][start:end,:,0]).astype(np.float64).sum(1)
         masked_region = mask_wssd["mask"][chr][start:end,:].sum(1)>0
         depth = corrected_depth[np.where(masked_region==0)]
         cp,ll = ml.get_mle_cp(depth)

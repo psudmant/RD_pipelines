@@ -482,7 +482,7 @@ class WssdFile(DenseTrackSet):
         debug_output('reading in chrom %s (len %d): %d-%d'%(
             chromChunk, curChromLen, corngChunk[0], corngChunk[1]))
 
-        curArray = self.depth[tracksetBaseName][ chromChunk ][corngChunk[0]:(corngChunk[1]+1),:,:]
+        curArray = np.nan_to_num(self.depth[tracksetBaseName][ chromChunk ][corngChunk[0]:(corngChunk[1]+1),:,:])
         curArray = curArray.astype('uint32')
         
         debug_output('tallying coverage in %s:%d-%d'%(chromChunk, corngChunk[0], corngChunk[1]))
@@ -527,7 +527,7 @@ class WssdFile(DenseTrackSet):
         assert cooStart>=1 and cooStart<=self.mContigNameLen[chrom], (chrom, cooStart, cooStop)
         assert cooStop>=1 and cooStop<=self.mContigNameLen[chrom], (chrom, cooStart, cooStop)
         
-        ard=self.depth[tracksetBaseName][chrom][(cooStart-1):cooStop,:,:]
+        ard=np.nan_to_num(self.depth[tracksetBaseName][chrom][(cooStart-1):cooStop,:,:]).astype(np.float64)
         ard=ard[:,lEdsToSum,:]
         ard=ard.sum(1)
         

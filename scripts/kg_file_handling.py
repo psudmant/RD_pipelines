@@ -198,7 +198,7 @@ def get_GC_depth_correction_vect(sum_depths,n_bases,GC_width,max_correction_fact
     lowess_depth = np.r_[left_line,lowess_depth,right_line]                    
 
     #lowess_depth[np.where(lowess_depth<=0)=np.min(lowess_depth[np.where(lowess_depth>0)])
-    mu = sum_depths.sum().astype(np.float64)/n_bases.sum()
+    mu = sum_depths.astype(np.float64).sum()/n_bases.astype(np.float64).sum()
     #correction = lowess_depth - mu
     lowess_depth = np.clip(lowess_depth,1e-10,1e30)
     correction = mu/lowess_depth

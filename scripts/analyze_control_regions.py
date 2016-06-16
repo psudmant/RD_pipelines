@@ -190,7 +190,7 @@ def analyze_regions(regions,input_wssd,mask_wssd,output_file,group):
         f.set_figwidth(20)
         f.set_figheight(5)
         #f.set_figheight(100)
-        depth = input_wssd.depth[group][region.chr][region.start:region.end,:,0].sum(1).astype(np.float64)
+        depth = np.nan_to_num(input_wssd.depth[group][region.chr][region.start:region.end,:,0]).astype(np.float64).sum(1)
         masked = mask_wssd["mask"][region.chr][region.start:region.end,:].sum(1)>0
         depth[np.where(masked>0)] = 0
         add_depth_to_fig(1,depth,k,region.name,n)    
@@ -408,9 +408,9 @@ def load_region_depths(regions,wssd_input,mask_wssd,dim,input_group,indiv,edit):
 
 
         if(edit == -1):
-            depth = wssd_input.depth[input_group][region.chr][region.start:region.end,:,dim].sum(1).astype(np.float64)
+            depth = np.nan_to_num(wssd_input.depth[input_group][region.chr][region.start:region.end,:,dim]).astype(float64).sum(1)
         else:
-            depth = wssd_input.depth[input_group][region.chr][region.start:region.end,edit,dim].astype(np.float64)
+            depth = np.nan_to_num(wssd_input.depth[input_group][region.chr][region.start:region.end,edit,dim]).astype(np.float64)
         
         masked = mask_wssd["mask"][region.chr][region.start:region.end,:].sum(1)>0
         depth = depth[np.where(masked==0)] #JUST THE DEPTHS FOR THE HIST 

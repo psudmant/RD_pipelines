@@ -88,9 +88,9 @@ class genome_data:
         
         
         if self.sunk_based:
-            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,0,1].astype(np.float64)
+            sdepths_working_chunk = np.nan_to_num(self.wssd.depth[self.grp][chr][start:end,0,1]).astype(np.float64)
         else:
-            sdepths_working_chunk = self.wssd.depth[self.grp][chr][start:end,:,0].sum(1).astype(np.float64)
+            sdepths_working_chunk = np.nan_to_num(self.wssd.depth[self.grp][chr][start:end,:,0]).astype(np.float64).sum(1)
 
         
         mask_chr = mask_chr==None and chr or mask_chr
@@ -130,18 +130,18 @@ class genome_data:
 
     def get_single_bp_regression(self,chr,start,end):
         if self.sunk_based:
-            return self.regressMu.regrinv(self.wssd.depth[self.grp][chr][start:end,0,1])
+            return self.regressMu.regrinv(np.nan_to_num(self.wssd.depth[self.grp][chr][start:end,0,1]).astype(np.float64))
         else:
-            return self.regressMu.regrinv(self.wssd.depth[self.grp][chr][start:end,:,0].sum(1))
+            return self.regressMu.regrinv(np.nan_to_num(self.wssd.depth[self.grp][chr][start:end,:,0]).astype(np.float64).sum(1))
 
 
 
 def get_wnds_mean(wssd,chr,start,end,wnds,mask,wnd_width,sunk_based=False):
     
         if sunk_based:
-            sdepths_working_chunk = wssd.depth["wssd.combined_corrected"][chr][start:end,0,1]
+            sdepths_working_chunk = np.nan_to_num(wssd.depth["wssd.combined_corrected"][chr][start:end,0,1]).astype(np.float64)
         else:
-            sdepths_working_chunk = wssd.depth["wssd.combined_corrected"][chr][start:end,:,0].sum(1)
+            sdepths_working_chunk = np.nan_to_num(wssd.depth["wssd.combined_corrected"][chr][start:end,:,0]).astype(np.float64).sum(1)
 
         #IF IT's A SUNK MASK -> different 
         if sunk_based:
@@ -612,7 +612,7 @@ def get_adjusted_depth(wssd,grpWssd,GC_content_table,grpGC,chr,start,end,gc_corr
     if(v):print "getting gc correction..."
     adjustment = gc_correction_vect.take(GC_content_table[grpGC][chr][start:end])    
     if(v):print "getting depths..."
-    depths = wssd.depth[grpWssd][chr][start:end,:,wssd_dim].sum(1)
+    depths = np.nan_to_num(wssd.depth[grpWssd][chr][start:end,:,wssd_dim]).astype(np.float64).sum(1)
     if(v):print "performing adjustment..."
     adjusted_depth = depths*adjustment
     #adjusted_depth[np.where(adjusted_depth<0)]=0
