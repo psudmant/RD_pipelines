@@ -408,7 +408,7 @@ def load_region_depths(regions,wssd_input,mask_wssd,dim,input_group,indiv,edit):
 
 
         if(edit == -1):
-            depth = np.nan_to_num(wssd_input.depth[input_group][region.chr][region.start:region.end,:,dim]).astype(float64).sum(1)
+            depth = np.nan_to_num(wssd_input.depth[input_group][region.chr][region.start:region.end,:,dim]).astype(np.float64).sum(1)
         else:
             depth = np.nan_to_num(wssd_input.depth[input_group][region.chr][region.start:region.end,edit,dim]).astype(np.float64)
         
