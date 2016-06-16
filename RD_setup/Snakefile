@@ -149,10 +149,18 @@ rule get_params:
 rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
-    params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00", genome=_get_genome_from_wildcards
+    params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00 -l disk_free=20G", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/wssd_cc.{genome}.txt"
     priority: 10
-    shell: """python {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
+    shell: 
+        """mkdir -p $TMPDIR/mapping/{wildcards.genome}/{wildcards.genome} $TMPDIR/{SPLIT_DIR} $TMPDIR/bac_analysis/{wildcards.genome}/{wildcards.genome} $TMPDIR/`dirname {output}`; 
+           ln -s `pwd`/{input} $TMPDIR/{input}; 
+           ln -s `pwd`/bac_analysis/{wildcards.genome}/{wildcards.genome}/cn2-gc-depth-WG-W200-dim0.txt $TMPDIR/bac_analysis/{wildcards.genome}/{wildcards.genome}/cn2-gc-depth-WG-W200-dim0.txt; 
+           ln -s `pwd`/mapping/{wildcards.genome}/{wildcards.genome}/wssd_out_file $TMPDIR/mapping/{wildcards.genome}/{wildcards.genome}/wssd_out_file; 
+           ln -s `pwd`/{SEX_POP} $TMPDIR/{SEX_POP}; 
+           pushd $TMPDIR;
+           echo -e "{wildcards.genome}\t$TMPDIR/mapping\t$TMPDIR/bac_analysis\t$TMPDIR/sequencing\t$TMPDIR/primary_analysis" > {SPLIT_DIR}/{wildcards.genome}; 
+           python {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
@@ -161,7 +169,9 @@ rule WSSD_cc:
                                     --input_wssd_file_names wssd_out_file \
                                     --max_correction 3  \
                                     --append_to_name .GC3.v2  \
-                                    --overide_thresh .01"""
+                                    --overide_thresh .01; 
+           popd; 
+           rsync $TMPDIR/{output} {output} --bwlimit=20000"""
 
 rule BAC:
     input:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
