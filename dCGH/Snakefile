@@ -119,6 +119,35 @@ rule plot_call_size_distribution:
         sns.distplot(dat["Call size"][dat["Call size"] < 100000], bins=100, kde=False, axlabel="Call size (<100 kbp)")
         plt.savefig(output[1])
 
+rule split_calls_by_type:
+    input: "final_calls/final_genotypes"
+    output: "final_calls/final_calls.DEL.tab", "final_calls/final_calls.DUP.tab", "final_calls/final_calls.mCNV.tab"
+    params: sge_opts="-l mfree=8G"
+    run:
+        dels = open(output[0], "w")
+        dups = open(output[1], "w")
+        mcnvs = open(output[2], "w")
+
+        with open(input[0], "r") as infile:
+            for i, line in enumerate(infile):
+                nsamples = 0
+                if i == 0:
+                    dels.write(line)
+                    dups.write(line)
+                    mcnvs.write(line)
+                    nsamples = len(line.rstrip().split()) - 3
+                    continue
+                cps = list(map(int, line.rstrip().split()[3:]))
+                if all([x in [0, 1, 2] for x in cps]):
+                    dels.write(line)
+                elif all([x in [2, 3, 4] for x in cps]):
+                    dups.write(line)
+                else:
+                    mcnvs.write(line)
+        dels.close()
+        dups.close()
+        mcnvs.close()
+
 rule export_callset:
     input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf.gz", "final_calls/final_calls.filter_data"    
     output: "exported_callsets/%s/final_calls.bed"%datestr
