@@ -1,6 +1,6 @@
 {
   "dts_dir": "DTS_files/500_bp_slide",
-  "dts_ref_dir": "DTS_files/500_bp_slide",
+  "dts_ref_dir": "DTS_ref_files/500_bp_slide",
   "gglob_dir": "gglob",
   "wnd_contigs": "/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs",
   "gaps": "/net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz",
