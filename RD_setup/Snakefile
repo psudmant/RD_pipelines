@@ -2,7 +2,7 @@ import glob
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
-shell.prefix(". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH=%s:$PYTHONPATH" % SCRIPT_DIR)
+shell.prefix(". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH=%s:$PYTHONPATH; " % SCRIPT_DIR)
 # Load configuration.
 
 if config == {}:

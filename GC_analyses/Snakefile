@@ -2,7 +2,7 @@ import glob
 import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
-SCRIPT_DIR = SNAKEMAKE_DIR + "../wssd_sunk"
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
