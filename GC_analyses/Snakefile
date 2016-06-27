@@ -2,12 +2,12 @@ import glob
 import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 
 if config == {}:
-    configfile: "%s/config.json" % SNAKEMAKE_DIR
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
 REFERENCE = config["reference"]
-SCRIPT_DIR=config["script_dir"]
 CONTIGS=config["ref_files"][REFERENCE]["contigs"]
 WND_SIZE=config["wnd_size"]
 WND_SLIDE=config["wnd_slide"]
@@ -29,14 +29,14 @@ rule plot_correct_by_GC_window:
     output: "combined_output/wssd_GC_cp.dataframe.pdf"
     params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
     shell:
-        "Rscript {SNAKEMAKE_DIR}/scripts/plot_GC.R {input} {output}"
+        "Rscript {SNAKEMAKE_DIR}/plot_GC.R {input} {output}"
 
 rule plot_correct_by_sample:
     input: "combined_output/wssd_GC_cp.summary"
     output: "combined_output/wssd_GC_cp.summary.pdf"
     params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
     shell:
-        "Rscript {SNAKEMAKE_DIR}/scripts/plot_GC_summary.R {input} {output}"
+        "Rscript {SNAKEMAKE_DIR}/plot_GC_summary.R {input} {output}"
 
 rule concat_GC_stats:
     input: fn_inputs=["indiv_GC_analysis/wssd-%s"%indiv for indiv in INPUT_GENOMES]
@@ -65,7 +65,7 @@ rule indiv_GC_stats:
     input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
     params: sge_opts="-l mfree=4G -N GC_{indiv} -l h_rt=00:30:00"
     output: "indiv_GC_analysis/wssd-{indiv}"
-    shell:  "source ~jlhudd/pipelines/read_depth/env.sh;python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
+    shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
 
 rule clean:
     shell: "rm -rf indiv_GC_analysis combined_output ./log; mkdir ./log"

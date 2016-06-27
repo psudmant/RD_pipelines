@@ -2,6 +2,8 @@ import argparse
 import tables
 import matplotlib
 
+import numpy as np
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -17,8 +19,8 @@ if __name__ == "__main__":
     parser.add_argument("outfile")
     parser.add_argument("--start", default=0)
     parser.add_argument("--end", default=-1)
-    parser.add_argument("--window_size", default=1000000, help="Default: %(default)s")
-    parser.add_argument("--window_slide", default=200000, help="Default: %(default)s")
+    parser.add_argument("--window_size", default=1000000, type=int, help="Default: %(default)s")
+    parser.add_argument("--window_slide", default=200000, type=int, help="Default: %(default)s")
     parser.add_argument("--corrected", action="store_true")
     parser.add_argument("--max_read_depth", default = None, type=float)
 
@@ -39,7 +41,7 @@ if __name__ == "__main__":
         wnd_end = wnd_start + args.window_size
         if wnd_end > contig_len:
             wnd_end = contig_len
-        window_rd = contig_rd[i * args.window_slide : wnd_end][:, :, 0].sum()
+        window_rd = np.nan_to_num(contig_rd[i * args.window_slide : wnd_end][:, :, 0]).astype(np.float64).sum()
         rds.append(window_rd / float(wnd_end - wnd_start))
     axes = plt.figure().add_subplot(111)
     plt.plot(rds)

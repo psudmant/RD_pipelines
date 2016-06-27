@@ -1,9 +1,10 @@
 import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 
 if config == {}:
-    configfile: "%s/config.json" % SNAKEMAKE_DIR
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
 if not os.path.exists("log"):
     os.makedirs("log")
@@ -27,7 +28,6 @@ with open(WSSD_CONTIGS, "r") as contigs_file:
         CONTIGS.append(contig)
 
 FILE_TYPES = ["cp_matrix", "sunk_cp_matrix", "wnd_starts", "wnd_ends", "sunk_wnd_starts", "sunk_wnd_ends"]
-MODULES = config["modules"]
 
 localrules: all
 
@@ -40,8 +40,7 @@ rule make_gglob:
     params: sge_opts = "-N make_gglob -l mfree=4G -l h_rt=00:30:00", chr = "{chr}"
     shell:
         """
-	. ~jlhudd/pipelines/read_depth/env.sh
-	source {SNAKEMAKE_DIR}/{MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+	source {SNAKEMAKE_DIR}/../env.conf; python {SSF_DIR}/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
 	--wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
 	"""
 
@@ -51,8 +50,7 @@ rule gglob_setup:
     params: sge_opts = "-N setup_gglob -l mfree=4G -l h_rt=00:30:00"
     shell:
         """
-	. ~jlhudd/pipelines/read_depth/env.sh
-    	source {SNAKEMAKE_DIR}/{MODULES} ; python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/gglob.py \
+    	source {SNAKEMAKE_DIR}/../env.conf ; python {SSF_DIR}/gglob.py \
         --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} \
         --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init
 	"""

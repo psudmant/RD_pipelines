@@ -3,7 +3,7 @@ import os
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
 if config == {}:
-    configfile: "%s/config.json" % SNAKEMAKE_DIR
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
 SAMPLE_LIST = config["sample_list"]
 MASKED_COUNT = config["masked_count"]

@@ -1,0 +1,4 @@
+calc_gc_depth/build
+calc_gc_depth/*.c
+calc_gc_depth/*.so
+*.pyc
