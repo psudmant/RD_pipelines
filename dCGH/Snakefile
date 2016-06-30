@@ -152,12 +152,14 @@ rule make_table_of_simple_genotypes:
     input: "final_calls/final_genotypes"
     output: "final_calls/analysis_callsets/bi_allelic_genotypes"
     params:  sge_opts="-l mfree=2G -N combine_contigs -l h_rt=1:00:00", exclude=":".join(EXCLUDE)
+    benchmark: "benchmarks_dCGH/get_biallelic_dels.txt"
     shell: "python {SSF_DIR}/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
 
 rule combine_by_chr:
     input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
     output: "final_calls/final_genotypes", "final_calls/final_calls.bed","final_calls/final_calls.filter_data"  
     params:  sge_opts="-l mfree=2G -N combine_contigs -l h_rt=0:30:00"
+    benchmark: "benchmarks_dCGH/combine_by_chr.txt"
     run:
         FOUT_gts = open(output[0], 'w')
         FOUT_bed = open(output[1], 'w')
@@ -202,11 +204,13 @@ rule genotype_refine_breakpoints_by_chr_subset:
             curr_n="{k}", 
             plot_out_dir="final_calls/by_chr/{contig}",
             subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
+    benchmark: "benchmarks_dCGH/genotype_refine.{contig}.{k}.txt"
     shell: "python {SSF_DIR}/genotype_refined_call_sets.py --call_table {input} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
 
 rule bgzip_all_refined_calls:       
     input: "all_resolved_calls/all_resolved_calls"
     params: sge_opts="-l mfree=10G -N clustering_all -l h_rt=2:00:00"
+    benchmark: "benchmarks_dCGH/bgzip_refined.txt"
     output: "all_resolved_calls/all_resolved_calls.gz"
     shell: "bgzip {input}"
 
@@ -214,6 +218,7 @@ rule cat_all_refined_calls:
     input: expand("resolved_calls_per_indiv/{sample}.segs.sorted.gz" , sample=samples)
     output: "all_resolved_calls/all_resolved_calls"
     params: sge_opts="-l mfree=6G -N merging_all -l h_rt=2:00:00"
+    benchmark: "benchmarks_dCGH/cat_refined.txt"
     run:
         F_out = open(output[0],'w') 
         F_out.write("chr\tstart\tend\tlog_likelihood\tindiv\tcalled_refs\n")
@@ -231,24 +236,28 @@ rule bgzip_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs.sorted"
     output: "resolved_calls_per_indiv/{sample}.segs.sorted.gz", "resolved_calls_per_indiv/{sample}.segs.sorted.gz.tbi"
     params: sge_opts="-l mfree=6G -N bgzip_{sample} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/bgzip_refined.{sample}.txt"
     shell: "bgzip -f {input}; tabix -f -S 1 -s 1 -b 2 -e 3 {input}.gz"
 
 rule sort_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs", "beds_resolved_calls/all.bed"
     output: "resolved_calls_per_indiv/{sample}.segs.sorted"
     params: sge_opts="-l mfree=6G -N sort_refined_{sample} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/sort_refined.{sample}.txt"
     shell: "cat {input[0]} | sort -k 1,1 -k 2n,2n > {output}"
 
 rule cat_indiv_refined_beds:
     input: expand("beds_resolved_calls/{sample}.bed",sample=samples)
     output: "beds_resolved_calls/all.bed"
     params: sge_opts="-l mfree=10G -N merging_indiv_beds -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/all_refined_calls.txt"
     shell: "cat {input} > {output}"
     
 rule make_bed_indiv_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs"
     output: "beds_resolved_calls/{sample}.bed"
     params: sge_opts="-l mfree=6G -N bed_out_{sample} -l h_rt=2:00:00", sample="{sample}"
+    benchmark: "benchmarks_dCGH/indiv_refined_calls.{sample}.txt"
     run:
         Fout =open(output[0],'w')
         Fin = open(input[0], 'r')
@@ -266,6 +275,7 @@ rule refine_calls:
     input: table="call_tables_merged_per_indiv/{sample}.segs.gz", test_DTS="%s/500_bp_{sample}" % DTS_DIR, ref_DTS=["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references]
     output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
     params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=2:00:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
+    benchmark: "benchmarks_dCGH/refine_calls.{sample}.txt"
     shell: "python {SSF_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
 #--limit_to_chr chr20 
 
@@ -273,6 +283,7 @@ rule merge_by_reference:
     input:  input_segs_fns=["indiv_dCGH_files/{sample}.%s.segs.gz"%(ref) for ref in references]
     params: indiv="{sample}", sge_opts="-l mfree=6G -N merging_{sample} -l h_rt=1:00:00"
     output: out_fn="call_tables_merged_per_indiv/{sample}.segs.gz" 
+    benchmark: "benchmarks_dCGH/merge_dCGH_files.{sample}.txt"
     run:
         gF = gzip.open(output.out_fn, 'wb')
         gF.write(bytes("indiv_ref\tindiv_test\trank\tchr\tstart\tend\tmu\tp\tadjusted_p\twindow_size\n", 'UTF-8'))
@@ -287,12 +298,14 @@ rule gzip:
     input: "indiv_dCGH_files/{sample}.{reference}.segs"
     output: "indiv_dCGH_files/{sample}.{reference}.segs.gz"
     params: sge_opts="-l mfree=6G -N gzip_{sample}_{reference} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/gzip.{sample}.{reference}.txt"
     shell: "gzip -f {input}"
 
 rule dCGH:
     input: "%s/500_bp_{sample}" % DTS_DIR, "%s/500_bp_{reference}" % DTS_REF_DIR
     output: "indiv_dCGH_files/{sample}.{reference}.segs" 
     params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference} -l h_rt=4:00:00", contigs=":".join(CONTIGS), sample="{sample}", ref="{reference}"
+    benchmark: "benchmarks_dCGH/dCGH.{sample}.{reference}.txt"
     run:
         if params.ref==params.sample:
             shell("touch {output[0]}")
