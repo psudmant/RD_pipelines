@@ -6,6 +6,8 @@ SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk; ".format(SNAKEMAKE_DIR))
+
 if not os.path.exists("log"):
     os.makedirs("log")
 
@@ -39,9 +41,9 @@ rule make_gglob:
     output: ["%s/{chr}.%s.h5" % (GGLOB, ft) for ft in FILE_TYPES]
     params: sge_opts = "-N make_gglob -l mfree=4G -l h_rt=00:30:00", chr = "{chr}"
     shell:
-        """
-	source {SNAKEMAKE_DIR}/../env.conf; python {SSF_DIR}/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
-	--wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
+        """echo $PYTHONPATH; 
+	    python {SSF_DIR}/gglob.py --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+	    --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
 	"""
 
 rule gglob_setup:
@@ -49,8 +51,8 @@ rule gglob_setup:
     output: "%s/gglob.idx" % GGLOB
     params: sge_opts = "-N setup_gglob -l mfree=4G -l h_rt=00:30:00"
     shell:
-        """
-    	source {SNAKEMAKE_DIR}/../env.conf ; python {SSF_DIR}/gglob.py \
+        """ echo $PYTHONPATH; 
+    	python {SSF_DIR}/gglob.py \
         --contigs {WSSD_CONTIGS} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} \
         --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init
 	"""

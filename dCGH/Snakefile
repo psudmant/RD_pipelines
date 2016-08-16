@@ -91,7 +91,7 @@ datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day
 localrules: all, clean_call_filter_test
 
 rule all:
-    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
+    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf"
 
 rule plot_call_size_distribution:
     input: "final_calls/final_calls.bed"
@@ -154,6 +154,14 @@ rule make_table_of_simple_genotypes:
     params:  sge_opts="-l mfree=2G -N combine_contigs -l h_rt=1:00:00", exclude=":".join(EXCLUDE)
     benchmark: "benchmarks_dCGH/get_biallelic_dels.txt"
     shell: "python {SSF_DIR}/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
+
+rule make_final_vcf:
+    input: expand("final_calls/by_chr/{contig}/{k}.vcf",contig=CONTIGS, k=SUBSETS)
+    output: "final_calls/final_calls.vcf"
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    benchmark: "benchmarks_dCGH/make_final_vcf.txt"
+    shell:
+        "module load vcflib/20160331; vcfcombine {input} | vcfstreamsort > {output}"
 
 rule combine_by_chr:
     input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
