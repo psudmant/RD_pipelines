@@ -24,9 +24,10 @@ if config == {}:
 
 shell.prefix("source %s/../env.conf; export PYTHONPATH=%s/../wssd_sunk:$PYTHONPATH; " % (SNAKEMAKE_DIR, SNAKEMAKE_DIR))
 
-DUP_TABIX = config["dup_tabix"]
-GENE_TABIX = config["gene_tabix"]
-GC_TABIX = config["gc_tabix"]
+REFERENCE = config["reference"]
+DUP_TABIX = config[REFERENCE]["dup_tabix"]
+GENE_TABIX = config[REFERENCE]["gene_tabix"]
+GC_TABIX = config[REFERENCE]["gc_tabix"]
 
 P_CUTOFF = config["p_cutoff"]
 
@@ -34,8 +35,8 @@ DTS_DIR = config["dts_dir"]
 DTS_REF_DIR = config["dts_ref_dir"]
 GGLOB_DIR = config["gglob_dir"]
 
-WND_CONTIGS = config["wnd_contigs"]
-GAPS = config["gaps"]
+WND_CONTIGS = config[REFERENCE]["wnd_contigs"]
+GAPS = config[REFERENCE]["gaps"]
 
 """
 Begin TEST_CALL_FILTER section.
