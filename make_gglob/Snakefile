@@ -27,6 +27,11 @@ CONTIGS = []
 
 if not os.path.lexists(WSSD_CONTIGS):
     WSSD_CONTIG_PATH = "%s/%s" % (SNAKEMAKE_DIR, WSSD_CONTIGS)
+
+if not os.path.lexists(SUNK_CONTIGS):
+    SUNK_CONTIG_PATH = "%s/%s" % (SNAKEMAKE_DIR, SUNK_CONTIGS)
+
+
 with open(WSSD_CONTIG_PATH, "r") as contigs_file:
     for line in contigs_file:
         contig = line.rstrip().split()[0]
@@ -46,7 +51,7 @@ rule make_gglob:
     shell:
         """echo $PYTHONPATH; 
 	    python {SSF_DIR}/gglob.py --contigs {WSSD_CONTIG_PATH} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
-	    --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
+	    --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIG_PATH} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
 	"""
 
 rule gglob_setup:
@@ -57,5 +62,5 @@ rule gglob_setup:
         """ echo $PYTHONPATH; 
     	python {SSF_DIR}/gglob.py \
         --contigs {WSSD_CONTIG_PATH} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} \
-        --sunk_contigs {SUNK_CONTIGS} --in_sunk_DTS_dir {SUNK_DTS} --init
+        --sunk_contigs {SUNK_CONTIG_PATH} --in_sunk_DTS_dir {SUNK_DTS} --init
 	"""
