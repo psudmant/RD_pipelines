@@ -24,7 +24,10 @@ WND_SIZE = str(config["wnd_size"])
 WND_SLIDE = str(config["wnd_slide"])
 
 CONTIGS = []
-with open(WSSD_CONTIGS, "r") as contigs_file:
+
+if not os.path.lexists(WSSD_CONTIGS):
+    contig_path = "%s/%s" % (SNAKEMAKE_DIR, WSSD_CONTIGS)
+with open(contig_path, "r") as contigs_file:
     for line in contigs_file:
         contig = line.rstrip().split()[0]
         CONTIGS.append(contig)
