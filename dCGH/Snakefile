@@ -91,7 +91,14 @@ datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day
 localrules: all
 
 rule all:
-    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf"
+    input: "final_calls/final_calls.bed",
+           "final_calls/final_genotypes",
+           "beds_resolved_calls/all.bed",
+           "final_calls/analysis_callsets/bi_allelic_genotypes",
+           "final_calls/final_calls.vcf",
+           "final_calls/final_calls.DEL.tab",
+           "final_calls/final_calls.DUP.tab",
+           "final_calls/final_calls.mCNV.tab"
 
 rule plot_call_size_distribution:
     input: "final_calls/final_calls.bed"
@@ -124,17 +131,17 @@ rule split_calls_by_type:
 
         with open(input[0], "r") as infile:
             for i, line in enumerate(infile):
-                nsamples = 0
                 if i == 0:
+                    nsamples = 0
                     dels.write(line)
                     dups.write(line)
                     mcnvs.write(line)
                     nsamples = len(line.rstrip().split()) - 3
                     continue
                 cps = list(map(int, line.rstrip().split()[3:]))
-                if all([x in [0, 1, 2] for x in cps]):
+                if all([x in [0, 1, 2, -1] for x in cps]) and cps.count(-1) < 0.1 * nsamples:
                     dels.write(line)
-                elif all([x in [2, 3, 4] for x in cps]):
+                elif all([x in [2, 3, 4, -1] for x in cps]) and cps.count(-1) < 0.1 * nsamples:
                     dups.write(line)
                 else:
                     mcnvs.write(line)
