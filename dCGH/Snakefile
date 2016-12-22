@@ -24,9 +24,10 @@ if config == {}:
 
 shell.prefix("source %s/../env.conf; export PYTHONPATH=%s/../wssd_sunk:$PYTHONPATH; " % (SNAKEMAKE_DIR, SNAKEMAKE_DIR))
 
-DUP_TABIX = config["dup_tabix"]
-GENE_TABIX = config["gene_tabix"]
-GC_TABIX = config["gc_tabix"]
+REFERENCE = config["reference"]
+DUP_TABIX = config[REFERENCE]["dup_tabix"]
+GENE_TABIX = config[REFERENCE]["gene_tabix"]
+GC_TABIX = config[REFERENCE]["gc_tabix"]
 
 P_CUTOFF = config["p_cutoff"]
 
@@ -34,8 +35,8 @@ DTS_DIR = config["dts_dir"]
 DTS_REF_DIR = config["dts_ref_dir"]
 GGLOB_DIR = config["gglob_dir"]
 
-WND_CONTIGS = config["wnd_contigs"]
-GAPS = config["gaps"]
+WND_CONTIGS = config[REFERENCE]["wnd_contigs"]
+GAPS = config[REFERENCE]["gaps"]
 
 """
 Begin TEST_CALL_FILTER section.
@@ -88,7 +89,7 @@ for folder in DIRS_TO_MAKE:
 
 datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
 
-localrules: all
+localrules: all, clean_call_filter_test
 
 rule all:
     input: "final_calls/final_calls.bed",
@@ -207,7 +208,7 @@ rule combine_by_chr:
         FOUT_gts.close()
 
 rule clean_call_filter_test:
-    input: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
+    input: expand("final_calls/by_chr/{contig}/{k}.genotypes", contig=CONTIGS, k=SUBSETS, ext=["genotypes", "bed", "vcf"])
     params: contig = '{contig}', sge_opts="-l h_rt=1:00"
     shell: "rm -rf final_calls/by_chr/{params.contig}/*"
 

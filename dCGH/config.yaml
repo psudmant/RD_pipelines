@@ -2,12 +2,26 @@
 dts_dir: DTS_files/500_bp_slide
 dts_ref_dir: DTS_ref_files/500_bp_slide
 gglob_dir: gglob
-wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs
-gaps: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz
-dup_tabix: ~psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
-gene_tabix: ~psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz
-gc_tabix: ~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz
+
 p_cutoff: 0.0001
 cutoff_scale: 3000
 wnd_size: 500
 max_merge_dif: 0.27
+
+reference: hg19
+
+hg19:
+    wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs
+    gaps: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz
+    dup_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
+    gene_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz
+    gc_tabix: /net/eichler/vol7/home/psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz
+
+hg38:
+    wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl.contigs
+    gaps: /net/eichler/vol2/eee_shared/assemblies/hg38/gaps.bed.gz
+    dup_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/wgac_merged.tab.gz
+    gene_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/genes/refGene.txt.sort.gz
+    gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
+
+

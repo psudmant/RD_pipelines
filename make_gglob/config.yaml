@@ -6,9 +6,9 @@
     wnd_size: 500
     reference: hg19
     hg19: 
-        wssd_wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs
-        sunk_wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl.contigs
+        wssd_wnd_contigs: contig_windows/hg19/500_bp_windows.wssd.pkl.contigs
+        sunk_wnd_contigs: contig_windows/hg19/500_bp_windows.sunk.pkl.contigs
     
     hg38: 
-        wssd_wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_slide/500_bp_windows.pkl
-        sunk_wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+        wssd_wnd_contigs: contig_windows/hg38/500_bp_windows.wssd.pkl.contigs
+        sunk_wnd_contigs: contig_windows/hg38/500_bp_windows.sunk.pkl.contigs
