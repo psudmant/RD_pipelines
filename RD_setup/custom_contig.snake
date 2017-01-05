@@ -128,7 +128,7 @@ rule make_DTS:
 #    output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
 #    params: sge_opts="-l mfree=4G -N params_{genome}", genome=_get_genome_from_wildcards
 #    priority: 15
-#    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
+#    shell: """. /net/eichler/vol4/home/jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
 #                                    --in_bac_regions {CONTROL_LOCATIONS}  \
 #                                    --in_contigs {CONTIGS} \
 #                                    --in_mask {MASK_TRACK} \
@@ -149,7 +149,7 @@ rule WSSD_cc:
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     priority: 10
-    shell: """. ~jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
+    shell: """. /net/eichler/vol4/home/jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
