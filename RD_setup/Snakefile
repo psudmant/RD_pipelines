@@ -2,7 +2,7 @@ import glob
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
-shell.prefix(". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH=%s:$PYTHONPATH; " % SCRIPT_DIR)
+shell.prefix(". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH=%s:$PYTHONPATH; set -eo pipefail; " % SCRIPT_DIR)
 # Load configuration.
 
 if config == {}:
@@ -28,7 +28,6 @@ WND_WIDTH=config["WND_WIDTH"]
 SUNK_MASK_TRACK=config["REF_FILES"][REFERENCE]["SUNK_MASK_TRACK"]
 
 DTS_DIR="DTS_files"
-BROWSER_TRACK_OUTDIR="tracks"
 
 WSSD_DIR="500_bp_slide"
 SUNK_DIR="500_bp_sunk_slide"
@@ -63,32 +62,55 @@ def _get_genome_from_wildcards(wildcards):
 localrules: all
 
 rule all:
-    input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["wssd", "sunk"])
+    input: expand("tracks/{genome}_{type}.bb.trackdef", genome=genomes, type=["wssd", "sunk"])
 
 # rule all:
 #     input: expand("bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params", genome=genomes)
 #     params: sge_opts="-N final_all"
 
-rule make_wssd_tracks:
-    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
-    output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
-    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N wssd_track_{genome}"
-    benchmark: "benchmarks/make_wssd_tracks.{genome}.txt"
+rule make_bb_tracks:
+    input: "bed/{genome}_{type}.sort.bed"
+    output: "tracks/{genome}_{type}.bb", "tracks/{genome}_{type}.bb.trackdef"
+    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N {type}_track_{genome}"
+    benchmark: "benchmarks/make_{type}_tracks.{genome}.txt"
     priority: 25
-    shell: "python {SCRIPT_DIR}/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs {CONTIGS}"
+    shell: 
+        """bedToBigBed {input} {CONTIGS} {output[0]};
+        echo -e 'track type=bigBed name="{wildcards.genome}_{wildcards.type}" description="{wildcards.genome}_{wildcards.type}" visibility=dense itemRgb="On" bigDataUrl={output[0]}' > {output[1]}"""
 
-rule make_sunk_tracks:
+rule sort_bed:
+    input: "bed/{genome}_{type}.bed"
+    output: temp("bed/{genome}_{type}.sort.bed")
+    params: sge_opts="-l mfree=1G -l h_rt=1:0:0 -N sort_bed"
+    shell:
+        "sort -k 1,1 -k 2,2n {input} > {output}"
+
+rule make_wssd_bed:
+    input: "%s/500_bp_slide/%d_bp_{genome}" % (DTS_DIR, WND_WIDTH)
+    output: temp("bed/{genome}_wssd.bed")
+    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N wssd_bed_{genome}"
+    shell:
+        "python {SCRIPT_DIR}/bw_builder.py \
+                --out_dir bed \
+                --fn_DTS {input} \
+                --contigs {CONTIGS} \
+                --wnd_size {WND_WIDTH} \
+                --fn_out wssd \
+                --output_contigs {CONTIGS}"
+
+rule make_sunk_bed:
     input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
-    output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
+    output: temp("bed/{genome}_sunk.bed")
     params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N sunk_track_{genome}"
     benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
     priority: 25
     shell: "python {SCRIPT_DIR}/bw_builder.py \
-                --out_dir {BROWSER_TRACK_OUTDIR} \
+                --out_dir tracks \
                 --fn_DTS {input} \
-                --contigs {SUNK_WNDS_PKL}.contigs \
+                --contigs {CONTIGS} \
                 --wnd_size {WND_WIDTH} \
-                --fn_out sunk --output_contigs {CONTIGS}"
+                --fn_out sunk \
+                --output_contigs {CONTIGS}"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
