@@ -105,7 +105,7 @@ rule make_sunk_bed:
     benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
     priority: 25
     shell: "python {SCRIPT_DIR}/bw_builder.py \
-                --out_dir tracks \
+                --out_dir bed \
                 --fn_DTS {input} \
                 --contigs {CONTIGS} \
                 --wnd_size {WND_WIDTH} \
