@@ -12,5 +12,6 @@ Quick setup:
 ```
 git clone https://github.com/eichlerlab/RD_pipelines --recursive
 cd RD_pipelines
+. env.conf
 make
 ```
