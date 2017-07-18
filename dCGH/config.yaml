@@ -24,4 +24,9 @@ hg38:
     gene_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/genes/refGene.txt.sort.gz
     gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
 
-
+hg38_noM:
+    wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_noM/500_bp_windows.wssd.pkl.contigs
+    gaps: /net/eichler/vol2/eee_shared/assemblies/hg38/gaps.bed.gz
+    dup_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/wgac_merged.tab.gz
+    gene_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/genes/refGene.txt.sort.gz
+    gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
