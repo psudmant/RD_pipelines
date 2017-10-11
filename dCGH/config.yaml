@@ -8,7 +8,7 @@ cutoff_scale: 3000
 wnd_size: 500
 max_merge_dif: 0.27
 
-reference: hg19
+reference: hg38_noM
 
 hg19:
     wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs
@@ -30,3 +30,5 @@ hg38_noM:
     dup_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/wgac_merged.tab.gz
     gene_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/genes/refGene.txt.sort.gz
     gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
+    segdup_gaps: /net/eichler/vol3/home/bcoe/hg38/segDups_Gaps_merged_hg38.bed
+    mask_bed: /net/eichler/vol3/home/bcoe/hg38/hg38_noWM_pad36.bed

@@ -14,6 +14,7 @@ BEGIN CONSTANTS
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
 SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../scripts"
 
 CUTOFF_SCALE=3000
 WINDOW_SIZE=500
@@ -89,7 +90,7 @@ for folder in DIRS_TO_MAKE:
 
 datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
 
-localrules: all, clean_call_filter_test
+localrules: all, clean_call_filter_test, all_indiv_merge_trim
 
 rule all:
     input: "final_calls/final_calls.bed",
@@ -100,6 +101,16 @@ rule all:
            "final_calls/final_calls.DEL.tab",
            "final_calls/final_calls.DUP.tab",
            "final_calls/final_calls.mCNV.tab"
+
+rule all_indiv_merge_trim:
+    input: expand("merge_trim/{indiv}.tab", indiv=samples)
+
+rule indiv_merge_trim:
+    input: "all_resolved_calls/all_resolved_calls.gz"
+    output: "merge_trim/{indiv}.tab"
+    params: sd_gap=config[REFERENCE]["segdup_gaps"], mask_bed=config[REFERENCE]["mask_bed"], dts_prefix=DTS_DIR+"/"+DTS_PREFIX
+    shell:
+        "Rscript {SCRIPT_DIR}/dCGH_AllResolvedCallsFilter_MergeAndTrim_Individual.R {wildcards.indiv} {params.sd_gap} {params.mask_bed} {input} {params.dts_prefix} {output}"
 
 rule plot_call_size_distribution:
     input: "final_calls/final_calls.bed"
