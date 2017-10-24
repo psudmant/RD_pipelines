@@ -1,5 +1,5 @@
 ---
-REFERENCE: hg19_canonical
+REFERENCE: hg38_canonical
 SEX_POP: sex_info
 SPLIT_DIR: index
 WND_WIDTH: 500
