@@ -4,7 +4,7 @@
     gglob_dir: gglob
     wnd_slide: 100
     wnd_size: 500
-    reference: hg19
+    reference: hg38
     hg19: 
         wssd_wnd_contigs: contig_windows/hg19/500_bp_windows.wssd.pkl.contigs
         sunk_wnd_contigs: contig_windows/hg19/500_bp_windows.sunk.pkl.contigs
