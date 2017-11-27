@@ -1,5 +1,5 @@
 ---
-reference: hg19
+reference: hg38
 input_dts_dir: DTS_files/500_bp_slide
 prefix: 500_bp_
 wnd_size: 500
