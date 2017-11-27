@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 def calc_n_windows(contig_length, wnd_slide):
-    return contig_length / wnd_slide + 1
+    return contig_length // wnd_slide + 1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -31,8 +31,8 @@ if __name__ == "__main__":
     else:
         root = "depthAndStarts_wssd"
 
-    wssd = tables.File(args.wssd_file, "r")
-    contig_rd = wssd.getNode("/%s/%s" % (root, args.chr))[args.start:args.end]
+    wssd = tables.open_file(args.wssd_file, "r")
+    contig_rd = wssd.get_node("/%s/%s" % (root, args.chr))[args.start:args.end]
     contig_len = contig_rd.shape[0] + 1
     n_windows = calc_n_windows(contig_len, args.window_slide)
     rds = []
