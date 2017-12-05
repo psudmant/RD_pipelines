@@ -342,15 +342,15 @@ rule dCGH:
             superdups=config[config['reference']]['superdups']
     benchmark: "benchmarks_dCGH/dCGH.{sample}.{reference}.txt"
     run:
-        if params.ref==params.sample:
+        if wildcards.reference==wildcards.sample:
             shell("touch {output[0]}")
         else:
-            shell("mkdir -p indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.ref}; "
+            shell("mkdir -p indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.reference}; "
                   "python {SSF_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} "
                   "--cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} "
                   "--output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} "
                   "--segdups {DUP_TABIX} --superdup_track {params.superdups} --gene_tabix {GENE_TABIX} "
-                  "--GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.ref} "
+                  "--GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.reference} "
                   "--plot_lims -2:2 ") 
 
 #rule clean:
