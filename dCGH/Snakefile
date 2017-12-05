@@ -90,7 +90,7 @@ for folder in DIRS_TO_MAKE:
 
 datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
 
-localrules: all, clean_call_filter_test, all_indiv_merge_trim
+localrules: all, clean_call_filter_test, all_indiv_merge_trim, run_dCGH, run_gzip
 
 rule all:
     input: "final_calls/final_calls.bed",
@@ -321,6 +321,9 @@ rule merge_by_reference:
                 gF.write(bytes("%s\t%s\t%s\n"%(ref, params.indiv, l.rstrip()),'UTF-8'))
         gF.close()
 
+rule run_gzip:
+    input: expand("indiv_dCGH_files/{sample}.{reference}.segs.gz", sample=samples, reference=references)
+
 rule gzip:
     input: "indiv_dCGH_files/{sample}.{reference}.segs"
     output: "indiv_dCGH_files/{sample}.{reference}.segs.gz"
@@ -328,16 +331,27 @@ rule gzip:
     benchmark: "benchmarks_dCGH/gzip.{sample}.{reference}.txt"
     shell: "gzip -f {input}"
 
+rule run_dCGH:
+    input: expand("indiv_dCGH_files/{sample}.{reference}.segs", sample=samples, reference=references)
+
 rule dCGH:
     input: "%s/500_bp_{sample}" % DTS_DIR, "%s/500_bp_{reference}" % DTS_REF_DIR
     output: "indiv_dCGH_files/{sample}.{reference}.segs" 
-    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference} -l h_rt=4:00:00", contigs=":".join(CONTIGS), sample="{sample}", ref="{reference}"
+    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference} -l h_rt=4:00:00",
+            contigs=":".join(CONTIGS),
+            superdups=config[config['reference']]['superdups']
     benchmark: "benchmarks_dCGH/dCGH.{sample}.{reference}.txt"
     run:
         if params.ref==params.sample:
             shell("touch {output[0]}")
         else:
-            shell("mkdir -p indiv_dCGH_visualizations/{params.sample}.{params.ref}; python {SSF_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} --cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} --output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} --segdups {DUP_TABIX} --superdup_track /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups_sorted.gz --gene_tabix {GENE_TABIX} --GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{params.sample}.{params.ref} --plot_lims -2:2 ") 
+            shell("mkdir -p indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.ref}; "
+                   python {SSF_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} "
+                   "--cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} "
+                   "--output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} "
+                   "--segdups {DUP_TABIX} --superdup_track {params.superdups} --gene_tabix {GENE_TABIX} "
+                   "--GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.ref} "
+                   "--plot_lims -2:2 ") 
 
 #rule clean:
 #    shell: "rm -rf ./beds_all_calls ./beds_resolved_calls ./indiv_dCGH_files ./call_tables_merged_per_indiv ./all_resolved_calls ./resolved_calls_per_indiv ./log ./final_calls ./indiv_dCGH_visualizations; mkdir ./log"

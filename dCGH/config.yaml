@@ -16,6 +16,7 @@ hg19:
     dup_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
     gene_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz
     gc_tabix: /net/eichler/vol7/home/psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz
+    superdups: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
 
 hg38:
     wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl.contigs
@@ -23,6 +24,7 @@ hg38:
     dup_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/wgac_merged.tab.gz
     gene_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/genes/refGene.txt.sort.gz
     gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
+    superdups: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/genomicSuperDup.tab.gz
 
 hg38_noM:
     wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_noM/500_bp_windows.wssd.pkl.contigs
@@ -32,3 +34,4 @@ hg38_noM:
     gc_tabix: /net/eichler/vol2/eee_shared/assemblies/hg38/read_depth/illumina/gc_content_1kbp_windows.bed.gz
     segdup_gaps: /net/eichler/vol3/home/bcoe/hg38/segDups_Gaps_merged_hg38.bed
     mask_bed: /net/eichler/vol3/home/bcoe/hg38/hg38_noWM_pad36.bed
+    superdups: /net/eichler/vol2/eee_shared/assemblies/hg38/wgac/genomicSuperDup.tab.gz
