@@ -56,7 +56,7 @@ if TEST_CALL_FILTER:
     PLOT_MODE="--do_plot"
     #PLOT_MODE=""
 else:
-    CONTIGS=["chr%d" % d for d in range(1,23)]
+    CONTIGS=["chr{}".format(d) for d in range(1,23) + ["X"]]
     PLOT_MODE=""
 
 """End TEST_CALL_FILTER section"""
