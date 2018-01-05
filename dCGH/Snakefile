@@ -56,7 +56,8 @@ if TEST_CALL_FILTER:
     PLOT_MODE="--do_plot"
     #PLOT_MODE=""
 else:
-    CONTIGS=["chr{}".format(d) for d in range(1,23) + ["X"]]
+    CONTIGS=["chr{}".format(d) for d in range(1,23)]
+    #CONTIGS=["chrX"] # Use this for calling on chrX, but run females and males separately
     PLOT_MODE=""
 
 """End TEST_CALL_FILTER section"""
