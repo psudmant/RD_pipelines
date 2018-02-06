@@ -17,6 +17,8 @@ hg19:
     gene_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz
     gc_tabix: /net/eichler/vol7/home/psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz
     superdups: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
+    segdup_gaps: /net/eichler/vol3/home/bcoe/SimonsGenomes/SegDups_Gaps_Merged_hg19.bed
+    mask_bed: /net/eichler/vol3/home/bcoe/SimonsGenomes/HG19-noWM-pad36.bed
 
 hg38:
     wnd_contigs: /net/eichler/vol2/eee_shared/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl.contigs
