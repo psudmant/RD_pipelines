@@ -111,6 +111,8 @@ rule indiv_merge_trim:
     output: "merge_trim/{indiv}.tab"
     params: sd_gap=config[REFERENCE]["segdup_gaps"], mask_bed=config[REFERENCE]["mask_bed"], dts_prefix=DTS_DIR+"/"+DTS_PREFIX
     shell:
+        "module purge; "
+        "module load modules modules-init modules-gs/prod modules-eichler/prodanaconda/201710 R/3.0.0; "
         "Rscript {SCRIPT_DIR}/dCGH_AllResolvedCallsFilter_MergeAndTrim_Individual.R {wildcards.indiv} {params.sd_gap} {params.mask_bed} {input} {params.dts_prefix} {output}"
 
 rule plot_call_size_distribution:
