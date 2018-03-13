@@ -1,0 +1,17 @@
+---
+
+ref_name: chm13
+
+masked_ref: /net/eichler/vol2/eee_shared/assemblies/CHM13/UW_OCT_31_2016_P6/polished_quivered_masked/indices/mrsFAST_ultra_reference/chm13.quivered.polished.hardmasked.gt10kb.fa
+masked_contigs: /net/eichler/vol2/eee_shared/assemblies/CHM13/UW_OCT_31_2016_P6/polished_quivered_masked/indices/mrsFAST_ultra_reference/chm13.quivered.polished.hardmasked.gt10kb.fa.fai
+unmasked_ref: /net/eichler/vol2/eee_shared/assemblies/CHM13/UW_OCT_31_2016_P6/polished_quivered_masked/indices/mrsFAST_ultra_reference/chm13.quivered.polished.softmasked.gt10kb.fa
+unmasked_contigs: /net/eichler/vol2/eee_shared/assemblies/CHM13/UW_OCT_31_2016_P6/polished_quivered_masked/indices/mrsFAST_ultra_reference/chm13.quivered.polished.softmasked.gt10kb.fa.fai
+
+input_control_locs: input_files/hg38.nhp.control_locations.bed
+dgv: input_files/dgv.bed
+gaps: input_files/gaps.bed
+segdups: input_files/segdups.bed
+
+chain_file: /net/eichler/vol26/7200/smurali/Liftover/chm13_GRCh38.liftover.chain
+control_locs_bed: chm13.nhp.control_locations.bed
+control_locs_txt: chm13.nhp.control_locations.txt

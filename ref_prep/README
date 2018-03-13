@@ -1,0 +1,9 @@
+#Pipeline for preparing a new reference
+
+This pipeline creates the files necessary for read depth analysis on a new reference.
+These steps include:
+  * Reference masking
+  * Mask track creation
+  * GC window analysis
+  * SUNK identification
+  * DTS window creation
