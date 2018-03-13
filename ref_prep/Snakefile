@@ -3,7 +3,7 @@ import os
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
 shell.executable("/bin/bash")
-shell.prefix("source %s/env.cfg; set -eo pipefail; " % SNAKEMAKE_DIR)
+shell.prefix("set -eo pipefail; ")
 
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
@@ -37,6 +37,7 @@ rule sunk_dts_windows:
     output: "tracks/500_bp_windows.sunk.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
@@ -50,6 +51,7 @@ rule wssd_dts_windows:
     output: "tracks/500_bp_windows.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
@@ -62,6 +64,7 @@ rule sunk_mask:
     output: "tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/make_kitzman_sunk_mask.py "
             "--input_fa {input.ref} "
             "--input_RM_fa {input.ref} "
@@ -76,7 +79,7 @@ rule kmer_bed:
     output: "kmers/unique_kmers.bed"
     params:
     shell:
-        "module load {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "bedtools bamtobed -i {input} > {output}"
 
 rule map_kmers:
@@ -84,7 +87,7 @@ rule map_kmers:
     output: "kmers/unique_kmers.bam"
     params: sge_opts="-l mfree=4G,h_rt=3:0:0:0 -pe serial 4"
     shell:
-        "module load {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "mrsfast --search {input.ref} -n 0 -e 0 --seq {input.kmers} -o $TMPDIR/mappings.sam --disable-nohit --threads 4 --mem 8; "
         "samtools sort -@ 4 -m 2G -T $TMPDIR/tmp.mappings -o {output} $TMPDIR/mappings.sam"
 
@@ -93,8 +96,8 @@ rule jellyfish:
     output: "kmers/unique_kmers.fasta", "kmers/mer_counts.jf"
     params: sge_opts="-l mfree=4G,h_rt=10:0:0 -pe serial 8"
     shell:
-        "module load {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
-        "jellyfish count -m 30 -s 3.5G -t 8 -U 1 --out-counter-len 1 -o $TMPDIR/mer_counts.jf {input}; "
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "jellyfish count -m 30 -s 3500M -t 8 -U 1 --out-counter-len 1 -o $TMPDIR/mer_counts.jf {input}; "
         "jellyfish dump -U 1 -o {output[0]} $TMPDIR/mer_counts.jf; "
         "rsync --bwlimit=80000 $TMPDIR/mer_counts.jf {output[1]}"
 
@@ -103,6 +106,7 @@ rule mask_dts:
     output: "tracks/%s.noWM_pad36" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/make_padded_mask_from_multiple_Nd_fastas.py "
                   "--input_fa {input.ref} "
                   "--input_RM_fa {input.ref} "
@@ -116,6 +120,7 @@ rule annotate_dts:
     output: "tracks/%s.{type}.DTS" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/build_annotation_flat_file.py "
         "--contigLengths {input.contigs} "
         "--input_annotations {input.annotations} "
@@ -127,6 +132,7 @@ rule annotate_gc:
     output: "tracks/%s.gc_w200.GC_content" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python {SNAKEMAKE_DIR}/scripts/wssd_build_gc_vector.py "
         "--contigLengths {input.contigs} "
         "--gc_width 200 "
