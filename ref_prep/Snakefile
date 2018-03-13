@@ -38,7 +38,7 @@ rule sunk_dts_windows:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
             "--wnd_width 500 "
@@ -52,7 +52,7 @@ rule wssd_dts_windows:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
             "--wnd_width 500 "
@@ -65,7 +65,7 @@ rule sunk_mask:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/make_kitzman_sunk_mask.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/make_kitzman_sunk_mask.py "
             "--input_fa {input.ref} "
             "--input_RM_fa {input.ref} "
             "--input_TRF_fa {input.ref} "
@@ -107,7 +107,7 @@ rule mask_dts:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/make_padded_mask_from_multiple_Nd_fastas.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/make_padded_mask_from_multiple_Nd_fastas.py "
                   "--input_fa {input.ref} "
                   "--input_RM_fa {input.ref} "
                   "--input_TRF_fa {input.ref} "
@@ -121,7 +121,7 @@ rule annotate_dts:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/build_annotation_flat_file.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/build_annotation_flat_file.py "
         "--contigLengths {input.contigs} "
         "--input_annotations {input.annotations} "
         "--chr:start:end_cols=0:1:2 "
@@ -133,7 +133,7 @@ rule annotate_gc:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
-        "python {SNAKEMAKE_DIR}/scripts/wssd_build_gc_vector.py "
+        "python -W once {SNAKEMAKE_DIR}/scripts/wssd_build_gc_vector.py "
         "--contigLengths {input.contigs} "
         "--gc_width 200 "
         "--fastq_sequence {input.ref} "
