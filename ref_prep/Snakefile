@@ -77,7 +77,7 @@ rule sunk_mask:
 rule kmer_bed:
     input: "kmers/unique_kmers.bam"
     output: "kmers/unique_kmers.bed"
-    params:
+    params: sge_opts="-l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "bedtools bamtobed -i {input} > {output}"
@@ -94,7 +94,7 @@ rule map_kmers:
 rule jellyfish:
     input: config["unmasked_ref"]
     output: "kmers/unique_kmers.fasta", "kmers/mer_counts.jf"
-    params: sge_opts="-l mfree=4G,h_rt=10:0:0 -pe serial 8"
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0,gpfsstate=0,ssd_free=20G -pe serial 8"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "jellyfish count -m 30 -s 3500M -t 8 -U 1 --out-counter-len 1 -o $TMPDIR/mer_counts.jf {input}; "
