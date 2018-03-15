@@ -7,8 +7,7 @@ SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
 shell.executable("/bin/bash")
 shell.prefix("set -eo pipefail; ")
 
-if config == {}:
-    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
 REF_NAME = config["ref_name"]
 
@@ -124,7 +123,7 @@ rule map_kmers:
 rule jellyfish:
     input: config["unmasked_ref"]
     output: "kmers/unique_kmers.fasta", "kmers/mer_counts.jf"
-    params: sge_opts="-l mfree=4G,h_rt=10:0:0,gpfsstate=0,ssd_free=20G -pe serial 8"
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0,gpfsstate=0,data_scratch_ssd_disk_free=20G -pe serial 8"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "jellyfish count -m 30 -s 3500M -t 8 -U 1 --out-counter-len 1 -o $TMPDIR/mer_counts.jf {input}; "
