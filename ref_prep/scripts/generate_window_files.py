@@ -2,10 +2,10 @@ import os,sys
 import os.path
 import cPickle
 import pickle 
+import numpy as np
 from optparse import OptionParser
-from kitz_wssd.wssd_common import *
-from wssd_pw_common import *
-from  ml_get_cpn import *
+import wssd_common
+import wssd_pw_common
 from sys import stderr
 
 from collections import defaultdict
@@ -25,18 +25,21 @@ def get_sliding_regions(mask,wnd_width,slide_by, sunk_based=False):
             curr_mask = mask['isntSunkOrIsMasked'][chr][:]
         else:
             curr_mask = mask['mask'][chr][:,:].sum(1)>0
-        chr_wnd_bnds,max_wnd = getBoundsForEqualWeightedWindows(curr_mask,0,l,slide_by)
+        chr_wnd_bnds,max_wnd = wssd_pw_common.getBoundsForEqualWeightedWindows(curr_mask,0,l,slide_by)
 
         regions_chrms.append(chr)
         regions_coords.append(tuple([0,l]))
         #because you are sliding - you now need to offset the ENDs
         #note, the last few wnds are increasingly smaller..
-        print chr_wnd_bnds[0:200]
-        chr_wnd_bnds[0:-(slides_in_wnd-1),1] = chr_wnd_bnds[(slides_in_wnd-1):,1]
-        chr_wnd_bnds[-(slides_in_wnd-1):,1] = chr_wnd_bnds[-1:,1]
-        regions_wnds.append(chr_wnd_bnds)
-        print chr_wnd_bnds[0:200] 
-        del curr_mask
+        if chr_wnd_bnds is not None:
+            print chr_wnd_bnds[0:200]
+            chr_wnd_bnds[0:-(slides_in_wnd-1),1] = chr_wnd_bnds[(slides_in_wnd-1):,1]
+            chr_wnd_bnds[-(slides_in_wnd-1):,1] = chr_wnd_bnds[-1:,1]
+            regions_wnds.append(chr_wnd_bnds)
+            print chr_wnd_bnds[0:200] 
+            del curr_mask
+        else:
+            regions_wnds.append(np.empty(1))
         
     return regions_chrms,regions_coords,regions_wnds
 
@@ -52,10 +55,10 @@ if __name__=='__main__':
     opts.add_option('','--sunk_based',dest='sunk_based',action='store_true',default=False)
     
     (o, args) = opts.parse_args()
-    mask = DenseTrackSet (o.fn_contig_file,
-                                                o.fn_mask,
-                                                overwrite=False,
-                                                openMode='r' )
+    mask = wssd_common.DenseTrackSet (o.fn_contig_file,
+                                      o.fn_mask,
+                                      overwrite=False,
+                                      openMode='r' )
 
     print "Determining Regions..." 
     if o.slide_by!=0:

@@ -2,6 +2,8 @@ import os
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
+
 shell.executable("/bin/bash")
 shell.prefix("set -eo pipefail; ")
 
@@ -37,7 +39,7 @@ rule sunk_dts_windows:
     output: "tracks/500_bp_windows.sunk.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
-        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}:$PYTHONPATH; "
         "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
@@ -51,7 +53,7 @@ rule wssd_dts_windows:
     output: "tracks/500_bp_windows.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
-        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}; "
         "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
             "--contig_file {input.contigs} "
             "--mask_file {input.mask} "
@@ -60,9 +62,9 @@ rule wssd_dts_windows:
             "--region_output {output}"
 
 rule sunk_mask:
-    input: ref=config["masked_ref"], contigs=config["masked_contigs"], sunks="kmers/unique_kmers.bed"
+    input: ref=config["masked_ref"], contigs=config["masked_contigs"], sunks="kmers/unique_kmers.merged.bed"
     output: "tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
-    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    params: sge_opts="-l mfree=20G -l h_rt=10:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
         "python -W once {SNAKEMAKE_DIR}/scripts/make_kitzman_sunk_mask.py "
@@ -74,6 +76,32 @@ rule sunk_mask:
             "--pad 36 "
             "--fn_sunkmask_out {output}"
 
+rule merge_kmer_bed:
+    input: "kmers/unique_kmers.bed"
+    output: "kmers/unique_kmers.merged.bed"
+    params: sge_opts="-l h_rt=10:0:0"
+    run:
+        with open(input[0], "r") as infile, \
+             open(output[0], "w") as outfile:
+            block_chr = None
+            block_start = None
+            block_end = None
+
+            for line in infile:
+                chr, start, end, count, score, strand = line.rstrip().split()
+                start, end = int(start), int(end)
+                if block_chr is None:
+                    block_chr, block_start, block_end = chr, start, start + 1
+                elif chr != block_chr:
+                    print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    block_chr, block_start, block_end = chr, start, start + 1
+                elif start > block_end:
+                    print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    block_start, block_end = start, start + 1
+                else:
+                    block_end = start + 1
+            print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    
 rule kmer_bed:
     input: "kmers/unique_kmers.bam"
     output: "kmers/unique_kmers.bed"
