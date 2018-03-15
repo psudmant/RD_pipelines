@@ -7,3 +7,8 @@ These steps include:
   * GC window analysis
   * SUNK identification
   * DTS window creation
+
+##Notes for future maintainers
+Many of the scripts in this analysis can't be updated to use the python modules
+in our wssd_sunk repository due to a dependence on a particular version 
+of pygr. These scripts use Peter Sudmant's old environment.
