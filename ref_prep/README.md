@@ -1,4 +1,4 @@
-#Pipeline for preparing a new reference
+# Pipeline for preparing a new reference
 
 This pipeline creates the files necessary for read depth analysis on a new reference.
 These steps include:
@@ -8,7 +8,7 @@ These steps include:
   * SUNK identification
   * DTS window creation
 
-##Notes for future maintainers
+## Notes for future maintainers
 Many of the scripts in this analysis can't be updated to use the python modules
 in our wssd_sunk repository due to a dependence on a particular version 
 of pygr. These scripts use Peter Sudmant's old environment.
