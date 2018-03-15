@@ -15,7 +15,7 @@ REF_NAME = config["ref_name"]
 if not os.path.exists("log"):
     os.makedirs("log")
 
-localrules: all
+localrules: all, get_control_locations
 
 rule all:
     input: "tracks/%s.noWM_pad36" % REF_NAME,
@@ -23,8 +23,10 @@ rule all:
            "tracks/%s.gc_w200.GC_content" % REF_NAME,
            "tracks/500_bp_windows.pkl",
            "tracks/500_bp_windows.sunk.pkl",
-           "tracks/control_locations.txt",
            expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+
+rule get_control_locations:
+    input: "tracks/control_locations.txt"
 
 rule liftover:
     input: control_locs=config["input_control_locs"], chain=config["chain_file"]

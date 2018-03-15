@@ -7,11 +7,9 @@ masked_contigs: input_files/masked_ref/chm13.quivered.polished.hardmasked.gt10kb
 unmasked_ref: input_files/unmasked_ref/chm13.quivered.polished.softmasked.gt10kb.fa
 unmasked_contigs: input_files/unmasked_ref/chm13.quivered.polished.softmasked.gt10kb.fa.fai
 
-input_control_locs: input_files/hg38.nhp.control_locations.bed
 dgv: input_files/dgv.bed
 gaps: input_files/gaps.bed
 segdups: input_files/segdups.bed
 
+input_control_locs: input_files/hg38.nhp.control_locations.bed
 chain_file: /net/eichler/vol26/7200/smurali/Liftover/chm13_GRCh38.liftover.chain
-control_locs_bed: chm13.nhp.control_locations.bed
-control_locs_txt: chm13.nhp.control_locations.txt
