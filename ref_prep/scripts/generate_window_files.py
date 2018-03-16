@@ -7,7 +7,6 @@ from optparse import OptionParser
 import wssd_common
 import wssd_pw_common
 from sys import stderr
-
 from collections import defaultdict
 
 
@@ -35,6 +34,10 @@ def get_sliding_regions(mask,wnd_width,slide_by, sunk_based=False):
             print chr_wnd_bnds[0:200]
             chr_wnd_bnds[0:-(slides_in_wnd-1),1] = chr_wnd_bnds[(slides_in_wnd-1):,1]
             chr_wnd_bnds[-(slides_in_wnd-1):,1] = chr_wnd_bnds[-1:,1]
+
+            # BN 2018: Fix off by one error with single window contigs
+            if len(chr_wnd_bnds) == 1 and chr_wnd_bnds[0][1] == l:
+                chr_wnd_bnds[0][1] = l - 1
             regions_wnds.append(chr_wnd_bnds)
             print chr_wnd_bnds[0:200] 
             del curr_mask
