@@ -42,7 +42,7 @@ def get_sliding_regions(mask,wnd_width,slide_by, sunk_based=False):
             print chr_wnd_bnds[0:200] 
             del curr_mask
         else:
-            regions_wnds.append(np.empty(1))
+            regions_wnds.append(np.array([[0, l-1]]))
         
     return regions_chrms,regions_coords,regions_wnds
 
