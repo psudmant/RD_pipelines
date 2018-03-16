@@ -120,7 +120,7 @@ rule make_sunk_DTS:
     priority: 20
     run:
         genome = g_to_index[params.indiv]
-        shell("python {SCRIPT_DIR}/generate_windowed_cp_ests.py \
+        shell("python -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --sunk_based \
                     --mask_file {SUNK_MASK_TRACK} \
@@ -139,7 +139,7 @@ rule make_DTS:
     priority: 20
     run: 
         genome = g_to_index[params.indiv]
-        shell("python {SCRIPT_DIR}/generate_windowed_cp_ests.py \
+        shell("python -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
                     --genome {genome}  \
