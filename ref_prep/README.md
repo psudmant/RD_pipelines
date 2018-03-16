@@ -30,6 +30,12 @@ and run rule `get_control_locations`:
 snakemake --drmaa " -V -cwd -w n -e ./log -o ./log {params.sge_opts} -S /bin/bash" -j 6 -w 60 -kT get_control_locations
 ```
 
+## RD_setup configuration
+Correctly matching output files with the necessary files for RD_setup
+can be difficult. To simplify this process, once you have control locations
+for your reference, you can generate text that can be appended to `config.yaml`
+in `RD_setup` using `snakemake get_rd_setup_text`.
+
 ## Notes for future maintainers
 Many of the scripts in this analysis can't be updated to use the python modules
 in our wssd_sunk repository due to a dependence on a particular version 

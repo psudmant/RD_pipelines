@@ -14,7 +14,7 @@ REF_NAME = config["ref_name"]
 if not os.path.exists("log"):
     os.makedirs("log")
 
-localrules: all, get_control_locations
+localrules: all, get_control_locations, get_rd_setup_text
 
 rule all:
     input: "tracks/%s.noWM_pad36" % REF_NAME,
@@ -22,10 +22,40 @@ rule all:
            "tracks/%s.gc_w200.GC_content" % REF_NAME,
            "tracks/500_bp_windows.pkl",
            "tracks/500_bp_windows.sunk.pkl",
+           "tracks/%s_500_bp_slide_GC" % REF_NAME,
+           "tracks/gc_content_1kbp_windows.bed.gz",
            expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
 
 rule get_control_locations:
     input: "tracks/control_locations.txt"
+
+rule get_rd_setup_text:
+    input: mask="tracks/%s.noWM_pad36" % REF_NAME,
+           sunk_mask="tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
+           gc="tracks/%s.gc_w200.GC_content" % REF_NAME,
+           wnds="tracks/500_bp_windows.pkl",
+           sunk_wnds="tracks/500_bp_windows.sunk.pkl",
+           misc_dts=expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+    output: "rd_setup.txt"
+    run:
+        import os
+        keys = {"MASK_TRACK": input.mask,
+                "SUNK_MASK_TRACK": input.sunk_mask,
+                "CONTIGS": config["masked_contigs"],
+                "GC_TRACK": input.gc,
+                "WNDS_PKL": input.wnds,
+                "SUNK_WNDS_PKL": input.sunk_wnds,
+                "CONTROL_LOCATIONS": "tracks/control_locations.txt",
+                "GENOME": config["masked_ref"],
+                "DGV_ANNOTATIONS": input.misc_dts[0],
+                "GENOMIC_SUPER_DUP_ANNOTATIONS": input.misc_dts[1],
+                "GAP_ANNOTATIONS": input.misc_dts[2]
+                }
+        with open(output[0], "w") as outfile:
+            print("\t{}:".format(REF_NAME), file=outfile)
+            for key, value in keys.items():
+                path = os.path.abspath(value)
+                print("\t\t{}: {}".format(key, path), file=outfile)
 
 rule liftover:
     input: control_locs=config["input_control_locs"], chain=config["chain_file"]
@@ -155,6 +185,30 @@ rule annotate_dts:
         "--input_annotations {input.annotations} "
         "--chr:start:end_cols=0:1:2 "
         "--outTable {output}"
+
+rule gc_dts:
+    input: pkl="tracks/500_bp_windows.sunk.pkl", fasta=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "tracks/%s_500_bp_slide_GC" % REF_NAME
+    params:
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "python2 generate_windowed_GC_ests.py --contig_file {input.contigs} "
+            "--wnd_width 500 "
+            "--wnd_slide 100 "
+            "--wnd_pickle {input.pkl} "
+            "--wnd_contig_file {input.pkl}.contigs "
+            "--fasta {input.fasta} "
+            "--fn_out {output}"
+
+rule gc_windows:
+    input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "tracks/gc_content_1kbp_windows.bed.gz"
+    params: sge_opts="-l mfree=4G,h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "bedtools makewindows -g {input.contigs} -w 1000 | sort -k 1,1 -k 2,2n -k 3,3n > $TMPDIR/windows.bed; "
+        "bedtools nuc -fi {input.ref} -bed $TMPDIR/windows.bed | cut -f 1-3, 5 | sed 1d | bgzip -c > {output}; "
+        "tabix {output}"
 
 rule annotate_gc:
     input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
