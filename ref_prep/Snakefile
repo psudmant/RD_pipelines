@@ -112,7 +112,7 @@ rule kmer_bed:
         "bedtools bamtobed -i {input} > {output}"
 
 rule map_kmers:
-    input: ref=config["masked_ref"], kmers="kmers/unique_kmers.fasta"
+    input: ref=config["masked_ref"], kmers="kmers/unique_kmers.fasta", index=config["masked_ref"]+".index"
     output: "kmers/unique_kmers.bam"
     params: sge_opts="-l mfree=4G,h_rt=3:0:0:0 -pe serial 4"
     shell:
