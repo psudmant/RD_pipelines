@@ -33,6 +33,7 @@ rule get_rd_setup_text:
     input: mask="tracks/%s.noWM_pad36" % REF_NAME,
            sunk_mask="tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
            gc="tracks/%s.gc_w200.GC_content" % REF_NAME,
+           control_locs="tracks/control_locations.txt",
            wnds="tracks/500_bp_windows.pkl",
            sunk_wnds="tracks/500_bp_windows.sunk.pkl",
            misc_dts=expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
@@ -45,7 +46,7 @@ rule get_rd_setup_text:
                 "GC_TRACK": input.gc,
                 "WNDS_PKL": input.wnds,
                 "SUNK_WNDS_PKL": input.sunk_wnds,
-                "CONTROL_LOCATIONS": "tracks/control_locations.txt",
+                "CONTROL_LOCATIONS": input.control_locs,
                 "GENOME": config["masked_ref"],
                 "DGV_ANNOTATIONS": input.misc_dts[0],
                 "GENOMIC_SUPER_DUP_ANNOTATIONS": input.misc_dts[1],
