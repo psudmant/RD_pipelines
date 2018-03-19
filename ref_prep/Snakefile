@@ -189,10 +189,10 @@ rule annotate_dts:
 rule gc_dts:
     input: pkl="tracks/500_bp_windows.sunk.pkl", fasta=config["unmasked_ref"], contigs=config["unmasked_contigs"]
     output: "tracks/%s_500_bp_slide_GC" % REF_NAME
-    params:
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
-        "python2 generate_windowed_GC_ests.py --contig_file {input.contigs} "
+        "python2 {SNAKEMAKE_DIR}/../wssd_sunk/generate_windowed_GC_ests.py --contig_file {input.contigs} "
             "--wnd_width 500 "
             "--wnd_slide 100 "
             "--wnd_pickle {input.pkl} "
