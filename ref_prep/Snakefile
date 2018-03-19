@@ -53,10 +53,10 @@ rule get_rd_setup_text:
                 "GAP_ANNOTATIONS": input.misc_dts[2]
                 }
         with open(output[0], "w") as outfile:
-            print("\t{}:".format(REF_NAME), file=outfile)
+            print("    {}:".format(REF_NAME), file=outfile)
             for key, value in keys.items():
                 path = os.path.abspath(value)
-                print("\t\t{}: {}".format(key, path), file=outfile)
+                print("        {}: {}".format(key, path), file=outfile)
 
 rule liftover:
     input: control_locs=config["input_control_locs"], chain=config["chain_file"]
