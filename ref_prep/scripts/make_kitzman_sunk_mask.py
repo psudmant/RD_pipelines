@@ -18,10 +18,10 @@ def pad(masked,pad):
 
 	starts[np.where(starts<0)] = 0
 	ends[np.where(ends>contig_len)] = contig_len
-
-	flip_to_true = np.unique(np.concatenate([np.arange(aa,bb) for (aa,bb) in zip(starts,ends)]))
-
-	masked[flip_to_true] = 1
+    windows = [np.arange(aa,bb) for (aa,bb) in zip(starts,ends)]
+    if len(windows) > 0:
+	    flip_to_true = np.unique(np.concatenate(windows))
+	    masked[flip_to_true] = 1
 	return masked
 
 if __name__=="__main__":
