@@ -8,6 +8,8 @@ These steps include:
   * SUNK identification
   * DTS window creation
 
+This has been tested successfully on hg38 and Clint_PTRv1 with contigs < 10 kbp removed.
+
 ## Quick start
 Setup `config.yaml` with a reference name and paths to a masked
 and unmasked reference fasta files and their fai index files.
@@ -32,7 +34,7 @@ snakemake --drmaa " -V -cwd -w n -e ./log -o ./log {params.sge_opts} -S /bin/bas
 
 ## RD_setup configuration
 Correctly matching output files with the necessary files for RD_setup
-can be difficult. To simplify this process, once you have control locations
+can be tedious. To simplify this process, once you have control locations
 for your reference, you can generate text that can be appended to `config.yaml`
 in `RD_setup` using `snakemake get_rd_setup_text`.
 
