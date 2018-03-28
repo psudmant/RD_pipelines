@@ -38,6 +38,7 @@ if __name__=="__main__":
     opts.add_option('','--alt_assembly_to_curr_contig',dest='fn_alt_assembly_to_curr',default=None)
     opts.add_option('','--alt_assembly_sunk_track',dest='fn_alt_sunk_track',default=None)
     opts.add_option('','--alt_assembly_contigs',dest='fn_alt_contigs',default=None)
+    opts.add_option('', '--starts_only', dest='starts_only', action='store_true', default=False)
 
     (o,args) = opts.parse_args()
     #####RIGHT NOW THIS ONLY ACCEPTS FASTAS ->BUT< could take coords too
@@ -101,7 +102,8 @@ if __name__=="__main__":
         masked = pad(masked,o.pad)
 
 
-        w_sunks = np.sort(sunk_positions[np.where(sunk_positions["contig"]==contig)]['start'])
+        sunk_starts = np.sort(sunk_positions[np.where(sunk_positions["contig"]==contig)]['start'])
+        sunk_ends = np.sort(sunk_positions[np.where(sunk_positions["contig"]==contig)]['end'])
         if o.all_sunk:
             sunk_vect = np.ones(masked.shape[0])
         elif alt_assembly_to_curr != None:
@@ -114,7 +116,11 @@ if __name__=="__main__":
                 sunk_vect[curr_start:curr_end] = alt_assembly_sunkmask['isSunk'][alt_chr][alt_start:alt_end]
         else:
             sunk_vect = np.zeros(masked.shape[0])
-        sunk_vect[w_sunks] = 1
+        if o.starts_only:
+            sunk_vect[w_sunks] = 1
+        else:
+            for s, e in zip(sunk_starts, sunk_ends):
+                sunk_vect[s:e] = 1
         sunk_vect = sunk_vect>0
     
         sunkmask_track['isntSunkOrIsMasked'][contig][:] = ~sunk_vect|masked    

@@ -17,26 +17,26 @@ if not os.path.exists("log"):
 localrules: all, get_control_locations, get_rd_setup_text
 
 rule all:
-    input: "tracks/%s.noWM_pad36" % REF_NAME,
-           "tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
-           "tracks/%s.gc_w200.GC_content" % REF_NAME,
-           "tracks/500_bp_windows.pkl",
-           "tracks/500_bp_windows.sunk.pkl",
-           "tracks/%s_500_bp_slide_GC" % REF_NAME,
-           "tracks/gc_content_1kbp_windows.bed.gz",
-           expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+    input: "ref_tracks/%s.noWM_pad36" % REF_NAME,
+           "ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
+           "ref_tracks/%s.gc_w200.GC_content" % REF_NAME,
+           "ref_tracks/500_bp_windows.pkl",
+           "ref_tracks/500_bp_windows.sunk.pkl",
+           "ref_tracks/%s_500_bp_slide_GC" % REF_NAME,
+           "ref_tracks/gc_content_1kbp_windows.bed.gz",
+           expand("ref_tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
 
 rule get_control_locations:
-    input: "tracks/control_locations.txt"
+    input: "ref_tracks/control_locations.txt"
 
 rule get_rd_setup_text:
-    input: mask="tracks/%s.noWM_pad36" % REF_NAME,
-           sunk_mask="tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
-           gc="tracks/%s.gc_w200.GC_content" % REF_NAME,
-           control_locs="tracks/control_locations.txt",
-           wnds="tracks/500_bp_windows.pkl",
-           sunk_wnds="tracks/500_bp_windows.sunk.pkl",
-           misc_dts=expand("tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+    input: mask="ref_tracks/%s.noWM_pad36" % REF_NAME,
+           sunk_mask="ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
+           gc="ref_tracks/%s.gc_w200.GC_content" % REF_NAME,
+           control_locs="ref_tracks/control_locations.txt",
+           wnds="ref_tracks/500_bp_windows.pkl",
+           sunk_wnds="ref_tracks/500_bp_windows.sunk.pkl",
+           misc_dts=expand("ref_tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
     output: "rd_setup.txt"
     run:
         import os
@@ -60,15 +60,15 @@ rule get_rd_setup_text:
 
 rule liftover:
     input: control_locs=config["input_control_locs"], chain=config["chain_file"]
-    output: "tracks/control_locations.bed", "tracks/control_locations.txt"
+    output: "ref_tracks/control_locations.bed", "ref_tracks/control_locations.txt"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
-        "liftOver {input.control_locs} {input.chain} {output[0]} tracks/unmapped.control_locs.bed; "
+        "liftOver {input.control_locs} {input.chain} {output[0]} ref_tracks/unmapped.control_locs.bed; "
         "awk '{{print $4,$1,$2,$3}}' {output[0]} > {output[1]}"
 
 rule sunk_dts_windows:
-    input: contigs=config["masked_contigs"], mask="tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
-    output: "tracks/500_bp_windows.sunk.pkl"
+    input: contigs=config["masked_contigs"], mask="ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
+    output: "ref_tracks/500_bp_windows.sunk.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}:$PYTHONPATH; "
@@ -81,8 +81,8 @@ rule sunk_dts_windows:
             "--region_output {output}"
 
 rule wssd_dts_windows:
-    input: contigs=config["masked_contigs"], mask="tracks/%s.noWM_pad36" % REF_NAME
-    output: "tracks/500_bp_windows.pkl"
+    input: contigs=config["masked_contigs"], mask="ref_tracks/%s.noWM_pad36" % REF_NAME
+    output: "ref_tracks/500_bp_windows.pkl"
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}; "
@@ -95,7 +95,7 @@ rule wssd_dts_windows:
 
 rule sunk_mask:
     input: ref=config["masked_ref"], contigs=config["masked_contigs"], sunks="kmers/unique_kmers.merged.bed"
-    output: "tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
+    output: "ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
     params: sge_opts="-l mfree=20G -l h_rt=10:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
@@ -145,7 +145,7 @@ rule kmer_bed:
 rule map_kmers:
     input: ref=config["masked_ref"], kmers="kmers/unique_kmers.fasta", index=config["masked_ref"]+".index"
     output: "kmers/unique_kmers.bam"
-    params: sge_opts="-l mfree=4G,h_rt=3:0:0:0 -pe serial 4"
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0 -pe serial 4"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
         "mrsfast --search {input.ref} -n 0 -e 0 --seq {input.kmers} -o $TMPDIR/mappings.sam --disable-nohit --threads 4 --mem 8; "
@@ -163,7 +163,7 @@ rule jellyfish:
 
 rule mask_dts:
     input: ref=config["masked_ref"], contigs=config["masked_contigs"]
-    output: "tracks/%s.noWM_pad36" % REF_NAME
+    output: "ref_tracks/%s.noWM_pad36" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
@@ -177,7 +177,7 @@ rule mask_dts:
 
 rule annotate_dts:
     input: annotations=lambda wc: config[wc.type], contigs=config["masked_contigs"]
-    output: "tracks/%s.{type}.DTS" % REF_NAME
+    output: "ref_tracks/%s.{type}.DTS" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
@@ -188,8 +188,8 @@ rule annotate_dts:
         "--outTable {output}"
 
 rule gc_dts:
-    input: pkl="tracks/500_bp_windows.sunk.pkl", fasta=config["unmasked_ref"], contigs=config["unmasked_contigs"]
-    output: "tracks/%s_500_bp_slide_GC" % REF_NAME
+    input: pkl="ref_tracks/500_bp_windows.sunk.pkl", fasta=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "ref_tracks/%s_500_bp_slide_GC" % REF_NAME
     params: sge_opts="-l mfree=4G,h_rt=10:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
@@ -203,7 +203,7 @@ rule gc_dts:
 
 rule gc_windows:
     input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
-    output: "tracks/gc_content_1kbp_windows.bed.gz"
+    output: "ref_tracks/gc_content_1kbp_windows.bed.gz"
     params: sge_opts="-l mfree=4G,h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
@@ -213,7 +213,7 @@ rule gc_windows:
 
 rule annotate_gc:
     input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
-    output: "tracks/%s.gc_w200.GC_content" % REF_NAME
+    output: "ref_tracks/%s.gc_w200.GC_content" % REF_NAME
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     shell:
         ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
