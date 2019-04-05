@@ -75,7 +75,7 @@ rule make_bb_tracks:
     benchmark: "benchmarks/make_{type}_tracks.{genome}.txt"
     priority: 25
     shell: 
-        """bedToBigBed {input} {CONTIGS} {output[0]};
+        """bedToBigBed -tab -type=bed9+1 -as={SNAKEMAKE_DIR}/track.as {input} {CONTIGS} {output[0]};
         echo -e 'track type=bigBed name="{wildcards.genome}_{wildcards.type}" description="{wildcards.genome}_{wildcards.type}" visibility=dense itemRgb="On" bigDataUrl={output[0]}' > {output[1]}"""
 
 rule sort_bed:
@@ -116,7 +116,7 @@ rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -l h_rt=6:00:00 -N DTS_SUNK_{genome}", indiv="{genome}"
-    benchmark: "benchmarks/make_sunk_DTS.{genome}.txt"
+    benchmark: "benchmarks/make_sunk_DTS.{DTS_DIR}.{WND_WIDTH}.{genome}.txt"
     priority: 20
     run:
         genome = g_to_index[params.indiv]
@@ -135,7 +135,7 @@ rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
     params: sge_opts="-l mfree=12G -l h_rt=6:00:00 -N DTS_{genome}", indiv="{genome}"
-    benchmark: "benchmarks/make_DTS.{genome}.txt"
+    benchmark: "benchmarks/make_DTS.{DTS_DIR}.{WND_WIDTH}.{genome}.txt"
     priority: 20
     run: 
         genome = g_to_index[params.indiv]
