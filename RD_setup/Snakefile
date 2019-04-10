@@ -76,7 +76,8 @@ rule make_bb_tracks:
     priority: 25
     shell: 
         """bedToBigBed -tab -type=bed9+1 -as={SNAKEMAKE_DIR}/track.as {input} {CONTIGS} {output[0]};
-        echo -e 'track type=bigBed name="{wildcards.genome}_{wildcards.type}" description="{wildcards.genome}_{wildcards.type}" visibility=dense itemRgb="On" bigDataUrl={output[0]}' > {output[1]}"""
+        echo -e 'track type=bigBed name="{wildcards.genome}_{wildcards.type}" description="{wildcards.genome}_{wildcards.type}" visibility=dense itemRgb="On" bigDataUrl={output[0]}' > {output[1]}
+        """
 
 rule sort_bed:
     input: "bed/{genome}_{type}.bed"

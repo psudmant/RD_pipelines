@@ -20,7 +20,6 @@ class output:
         self.output_contigs=output_contigs
     
     def add(self, contig, start, end, cp):
-        rnd_cp = min(int(round(cp)), 10)
         self.outdata.append([contig, start, end, rnd_cp])
         
     def output(self, fn_out, indiv, name):            
@@ -49,7 +48,8 @@ class output:
         with open(fn_tmp, 'w') as F:
             for l in s_outdata:
                 contig, start, end, cp = l
-                print >>F, "\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[cp]]) 
+                rnd_cp = min(int(round(cp)), 10)
+                print >>F, "\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],cp]) 
             
         #hg19_contigs = "/net/eichler/vol7/home/psudmant/genomes/contigs/hg19_contigs.txt"
         contigs = self.output_contigs 
