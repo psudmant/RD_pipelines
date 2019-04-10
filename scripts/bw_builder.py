@@ -20,7 +20,7 @@ class output:
         self.output_contigs=output_contigs
     
     def add(self, contig, start, end, cp):
-        self.outdata.append([contig, start, end, rnd_cp])
+        self.outdata.append([contig, start, end, cp])
         
     def output(self, fn_out, indiv, name):            
         color_hash =  { 0 :"229,229,229",
@@ -45,31 +45,12 @@ class output:
         
         fn_tmp = tempfile.NamedTemporaryFile(mode='w', dir="/tmp").name
         print fn_tmp
-        with open(fn_tmp, 'w') as F:
+        with open(fn_out, 'w') as F:
             for l in s_outdata:
                 contig, start, end, cp = l
                 rnd_cp = min(int(round(cp)), 10)
-                print >>F, "\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],cp]) 
+                print >>F, "\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],str(cp)]) 
             
-        #hg19_contigs = "/net/eichler/vol7/home/psudmant/genomes/contigs/hg19_contigs.txt"
-        contigs = self.output_contigs 
-        cmd = "/net/eichler/vol7/home/psudmant/local_installations/ucscOLD/ucsc/bin/bedToBigBed %s %s %s"%(fn_tmp,contigs,fn_out)
-        track_def = """track type=bigBed name="%s_%s" description="%s_%s" visibility=dense itemRgb="On" dataUrl=%s\n"""%(indiv, 
-                                                                                                                         name, 
-                                                                                                                         indiv,
-                                                                                                                         name,
-                                                                                                                         fn_out)
-        print cmd 
-        ret = os.system(cmd)
-        if ret != 0:
-            exit(ret)
-        print fn_tmp
-        os.unlink(fn_tmp)
-        fn_out_td = "%s.trackdef"%(fn_out)
-        with open(fn_out_td,'w') as F:
-            F.write(track_def)
-
-
 if __name__=="__main__":
         
     opts = OptionParser()
@@ -117,7 +98,7 @@ if __name__=="__main__":
         e = wnd_ends[-1]
         c_out.add(contig, prev_start, e, cps[-1])
     
-    fn_out = "%s/%s_%s.bb"%(o.out_dir, indiv, o.fn_out) 
+    fn_out = "%s/%s_%s.bed" % (o.out_dir, indiv, o.fn_out) 
     c_out.output(fn_out, indiv, o.fn_out)
                 
      
