@@ -19,7 +19,7 @@ INPUT_DTS_DIR=config["input_dts_dir"]
 INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_DTS_DIR)]
 #INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
 
-shell.prefix("source %s/../env.conf; export PYTHONPATH=%s/../wssd_sunk:$PYTHONPATH; " % (SNAKEMAKE_DIR, SNAKEMAKE_DIR))
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
 
 localrules: all
 
@@ -65,9 +65,9 @@ rule concat_GC_stats:
 
 rule indiv_GC_stats:
     input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
-    params: sge_opts="-l mfree=4G -N GC_{indiv} -l h_rt=00:30:00"
+    params: sge_opts="-l mfree=4G -N GC_{indiv} -l h_rt=03:00:00"
     output: "indiv_GC_analysis/wssd-{indiv}"
-    shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
+    shell:  "python3 {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
 
 rule clean:
     shell: "rm -rf indiv_GC_analysis combined_output ./log; mkdir ./log"

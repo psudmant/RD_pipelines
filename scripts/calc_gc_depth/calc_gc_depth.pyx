@@ -1,3 +1,6 @@
+#cython: language_level=3
+#cython: linetrace=False
+
 import numpy as np
 cimport numpy as np
 #cimport cython 

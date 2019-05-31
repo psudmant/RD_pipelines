@@ -8,4 +8,4 @@
 module purge
 
 module load modules modules-init modules-gs modules-eichler
-module load anaconda/2.3.0 lzo/2.06 zlib/1.2.6 R/2.15.0 ucsc/20160823
+module load miniconda/4.5.12 lzo/2.06 zlib/1.2.6 R/2.15.0 ucsc/20160823

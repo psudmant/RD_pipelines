@@ -1,8 +1,11 @@
 import glob
 
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+MODULE_DIR = SNAKEMAKE_DIR + "/../wssd_sunk:"+SNAKEMAKE_DIR+"/../ssf_DTS_caller"
 SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
-shell.prefix(". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH=%s:$PYTHONPATH; set -eo pipefail; " % SCRIPT_DIR)
+shell.prefix("set -eo pipefail; source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
+# shell.prefix("source {SNAKEMAKE_DIR}/../env.conf; export PATH=%s:$PATH; set -eo pipefail; " % MODULE_DIR)
+
 # Load configuration.
 
 if config == {}:
@@ -81,7 +84,7 @@ rule make_bb_tracks:
 
 rule sort_bed:
     input: "bed/{genome}_{type}.bed"
-    output: temp("bed/{genome}_{type}.sort.bed")
+    output: "bed/{genome}_{type}.sort.bed"
     params: sge_opts="-l mfree=1G -l h_rt=1:0:0 -N sort_bed"
     shell:
         "sort -k 1,1 -k 2,2n {input} > {output}"
@@ -91,7 +94,7 @@ rule make_wssd_bed:
     output: temp("bed/{genome}_wssd.bed")
     params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N wssd_bed_{genome}"
     shell:
-        "python {SCRIPT_DIR}/bw_builder.py \
+        "python3 {SCRIPT_DIR}/bw_builder.py \
                 --out_dir bed \
                 --fn_DTS {input} \
                 --contigs {CONTIGS} \
@@ -105,7 +108,7 @@ rule make_sunk_bed:
     params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N sunk_track_{genome}"
     benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
     priority: 25
-    shell: "python {SCRIPT_DIR}/bw_builder.py \
+    shell: "python3 {SCRIPT_DIR}/bw_builder.py \
                 --out_dir bed \
                 --fn_DTS {input} \
                 --contigs {CONTIGS} \
@@ -121,7 +124,7 @@ rule make_sunk_DTS:
     priority: 20
     run:
         genome = g_to_index[params.indiv]
-        shell("python -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
+        shell("python3 -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --sunk_based \
                     --mask_file {SUNK_MASK_TRACK} \
@@ -140,7 +143,7 @@ rule make_DTS:
     priority: 20
     run: 
         genome = g_to_index[params.indiv]
-        shell("python -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
+        shell("python3 -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
                     --genome {genome}  \
@@ -155,7 +158,7 @@ rule get_params:
     params: sge_opts="-l mfree=4G -l h_rt=6:00:00 -N params_{genome}", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/get_params.{genome}.txt"
     priority: 15
-    shell: """python {SCRIPT_DIR}/analyze_control_regions.py  \
+    shell: """python3 {SCRIPT_DIR}/analyze_control_regions.py  \
                                     --in_bac_regions {CONTROL_LOCATIONS}  \
                                     --in_contigs {CONTIGS} \
                                     --in_mask {MASK_TRACK} \
@@ -183,7 +186,7 @@ rule WSSD_cc:
            ln -s `pwd`/{SEX_POP} $TMPDIR/{SEX_POP}; 
            pushd $TMPDIR;
            echo -e "{wildcards.genome}\t$TMPDIR/mapping\t$TMPDIR/bac_analysis\t$TMPDIR/sequencing\t$TMPDIR/primary_analysis" > {SPLIT_DIR}/{wildcards.genome}; 
-           python {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
+           python3 {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
                                     --gc_width {GC_WIDTH}  \
                                     --in_genomes {params.genome} \
@@ -202,7 +205,7 @@ rule BAC:
     params: sge_opts="-l mfree=10G -N BAC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/bac.{genome}.txt"
     priority: 5
-    shell: """python {SCRIPT_DIR}/run_bac_analysis.py \
+    shell: """python3 {SCRIPT_DIR}/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
@@ -218,7 +221,7 @@ rule GetGC:
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     params: sge_opts="-l mfree=6G -N GC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
     benchmark: "benchmarks/getgc.{genome}.txt"
-    shell: """python {SCRIPT_DIR}/get_gc_correction.py \
+    shell: """python3 {SCRIPT_DIR}/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \

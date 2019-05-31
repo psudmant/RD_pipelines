@@ -23,7 +23,7 @@ MAX_MERGE_DIF=0.27
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
-shell.prefix("source %s/../env.conf; export PYTHONPATH=%s/../wssd_sunk:$PYTHONPATH; " % (SNAKEMAKE_DIR, SNAKEMAKE_DIR))
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
 
 REFERENCE = config["reference"]
 DUP_TABIX = config[REFERENCE]["dup_tabix"]
@@ -306,7 +306,7 @@ rule refine_calls:
     output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
     params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=2:00:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
     benchmark: "benchmarks_dCGH/refine_calls.{sample}.txt"
-    shell: "python {SSF_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
+    shell: "python3 {SSF_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
 #--limit_to_chr chr20 
 
 rule merge_by_reference:
