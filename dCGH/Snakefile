@@ -23,7 +23,7 @@ MAX_MERGE_DIF=0.27
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
-shell.prefix("source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
 
 REFERENCE = config["reference"]
 DUP_TABIX = config[REFERENCE]["dup_tabix"]

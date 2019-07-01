@@ -3,7 +3,7 @@ import glob
 SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 MODULE_DIR = SNAKEMAKE_DIR + "/../wssd_sunk:"+SNAKEMAKE_DIR+"/../ssf_DTS_caller"
 SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
-shell.prefix("set -eo pipefail; source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
+shell.prefix("set -eo pipefail; source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
 # shell.prefix("source {SNAKEMAKE_DIR}/../env.conf; export PATH=%s:$PATH; set -eo pipefail; " % MODULE_DIR)
 
 # Load configuration.

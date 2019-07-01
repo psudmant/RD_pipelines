@@ -6,7 +6,7 @@ SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 if config == {}:
     configfile: "%s/config.yaml" % SNAKEMAKE_DIR
 
-shell.prefix("source {0}/../env.conf; export PYTHONPATH=${PYTHONPATH}:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
 
 if not os.path.exists("log"):
     os.makedirs("log")
