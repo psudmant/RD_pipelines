@@ -95,7 +95,7 @@ def load_control_bac_objects(fn_bac_list,mask_table,gc_content_table,genome):
         control_bacs[id]=new_bac
 
         total_unmasked_len+=new_bac.unmasked_len
-        print(new_bac.unmasked_len , "\t" , len(new_bac.sequence) , "\t", new_bac.cp)
+        print new_bac.unmasked_len , "\t" , len(new_bac.sequence) , "\t", new_bac.cp
 
     return (total_unmasked_len, control_bacs)
 
@@ -104,11 +104,11 @@ def mkdir(dir,file):
     ls_dir = os.listdir(dir)
     if(not(file_exists(ls_dir,file))):
         command = "mkdir %s/%s"%(dir,file)
-        print(command)
+        print command
         os.system(command)
 
 def die(str):
-    print(str)
+    print str
     assert(0)
 
 
@@ -129,21 +129,21 @@ def get_depth_vs_cn(cp_num,bac_wssd,hg_wssd,gc_correction_tup,control_bacs,indiv
     bac_fuguized_depths = []
     depth_vs_cn = np.zeros(0)
 
-    print("copy number:%d"%(cp_num))
+    print "copy number:%d"%(cp_num)
     for bac in control_bacs:
         curr_bac = control_bacs[bac]
         curr_cp = curr_bac.cp
         if(copy(curr_bac,indiv) == cp_num):
-            print("\t%s %d *%s*"%(bac,curr_bac.unmasked_len,curr_bac.source))
+            print "\t%s %d *%s*"%(bac,curr_bac.unmasked_len,curr_bac.source)
             if(curr_bac.source != 'bac'):
                 bac_fuguized_depth = get_total_fuguized_adjusted_depth(hg_wssd,"wssd",curr_bac.gc_content_table,"GC_content",bac,correction,curr_bac.mask,curr_bac.chr,curr_bac.start,curr_bac.end,wssd_dim)
             elif(curr_bac.source == 'bac'):
                 bac_fuguized_depth = get_total_fuguized_adjusted_depth(bac_wssd,"wssd",curr_bac.gc_content_table,"GC_content",bac,correction,curr_bac.mask,curr_bac.chr,curr_bac.start,curr_bac.end,wssd_dim)
             else:
-                print("ERROR undefined source", control_bacs[bac].source)
+                print "ERROR undefined source", control_bacs[bac].source
                 sys.exit(1)
 
-            print(bac_fuguized_depth.shape[0])
+            print bac_fuguized_depth.shape[0]
             depth_vs_cn = np.r_[depth_vs_cn,bac_fuguized_depth]
 
     #depth_vs_cn = np.r_[bac_fuguized_depths]
@@ -154,9 +154,9 @@ def get_depth_vs_cn(cp_num,bac_wssd,hg_wssd,gc_correction_tup,control_bacs,indiv
 def weighted_fit_line_get_corr(x,y,w,f,color,line_type='-'):
 
     fitfunc = lambda p, x: p[0] + p[1] * x
-    print(x)
-    print(y)
-    print(w)
+    print x
+    print y
+    print w
     errfunc = lambda p, x, y, w: (y - fitfunc(p, x)) * w
 
     pinit = [1.0, -1.0]
@@ -186,8 +186,8 @@ def fit_line_get_corr(x,y,f,color,line_type='-'):
     errfunc = lambda p, x, y: (y - fitfunc(p, x))
 
     pinit = [1.0, -1.0]
-    print(x.shape[0])
-    print(y.shape[0])
+    print x.shape[0]
+    print y.shape[0]
     out = scipy.optimize.leastsq(errfunc, pinit,args=(x,y), full_output=1)
     xs = out[0]
 
@@ -244,7 +244,7 @@ def get_cns(control_bacs,indiv):
             cns.append(curr_cp)
 
     cns.sort()
-    print(cns)
+    print cns
     return cns
 
 #def analyze_data(indiv,lib,indiv_lib_output_dir,prefix,ed,color,f1,f2,f3,ed_struct,offset):
@@ -280,10 +280,10 @@ def  analyze_bac_depths(indiv,indiv_lib_output_dir,ed,color,f1,f2,f3,ed_struct,b
 
     simplex = np.array(cns)
 
-    print(x_with_x)
-    print(y_with_x)
-    print(x_with_x.shape[0])
-    print(y_with_x.shape[0])
+    print x_with_x
+    print y_with_x
+    print x_with_x.shape[0]
+    print y_with_x.shape[0]
     pcorr_avs_with_x = fit_line_get_corr(simplex,np.array(avs),f3,color)
 
     fit_line_get_corr(x_with_x,y_with_x,f3,color,"--")
@@ -296,10 +296,10 @@ def  analyze_bac_depths(indiv,indiv_lib_output_dir,ed,color,f1,f2,f3,ed_struct,b
     ed_struct['sigs'] = sdevs
 
 
-    print(x_with_x, len(x_with_x))
-    print("y values", y_with_x, len(y_with_x))
-    print(cn_simple)
-    print(avs)
+    print x_with_x, len(x_with_x)
+    print "y values", y_with_x, len(y_with_x)
+    print cn_simple
+    print avs
 
     do_plot = False
 
@@ -360,12 +360,12 @@ def run_bac_analysis(output_dir,indiv,lib,total_unmasked_len,gc_correction_tup,b
         add_gc_plot_fit_interpolation(gc_correction_tup,colors[i],1)
         sum_cn2_read_depth = analyze_bac_depths(indiv,indiv_lib_output_dir,ed,colors[i],1,2,3,ed_struct,bac_wssd,hg_wssd,gc_correction_tup,control_bacs,wssd_dim)
 
-        print(ed_struct)
-        print(sum_cn2_read_depth, total_unmasked_len)
-        print("effective coverage: ", float(sum_cn2_read_depth)/total_unmasked_len)
+        print ed_struct
+        print sum_cn2_read_depth, total_unmasked_len
+        print "effective coverage: ", float(sum_cn2_read_depth)/total_unmasked_len
 
         ec = float(sum_cn2_read_depth)/total_unmasked_len
-        print(ec)
+        print ec
 
         cv = get_means(ed_struct["us"],ed_struct["sigs"])
 
@@ -373,9 +373,9 @@ def run_bac_analysis(output_dir,indiv,lib,total_unmasked_len,gc_correction_tup,b
         output_result = "%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"%(ed,ec,ed_struct["corr_all"],ed_struct["corr_all_no_x"],ed_struct["corr_avs"],ed_struct["corr_avs_no_x"],0,0,0,0,0)
         sum_stat_file.write(output_result)
         i+=1
-        print(ed)
+        print ed
 
-    print("finished LIB--------------\n-----------\n",lib)
+    print "finished LIB--------------\n-----------\n",lib
 
     if do_plot:
         #NOW
@@ -386,7 +386,7 @@ def run_bac_analysis(output_dir,indiv,lib,total_unmasked_len,gc_correction_tup,b
         xlabel("GC%")
         ylabel("average depth")
         savefig(figure_name,format='png')
-        print(figure_name)
+        print figure_name
         close(1)
 
         figure(2)
@@ -420,7 +420,7 @@ class GC_correction:
         #depth = np.loadtxt(file,'float',usecols=[2])
         depth = wssd.depth["wssd"][bac.chr][bac.start:bac.end,wssd_dim].sum(1)
 
-        for n_gc,sum_depth in self.sum_read_depth.items():
+        for n_gc,sum_depth in self.sum_read_depth.iteritems():
 
             #print "****"
             #print "n_locations",self.n_locations[n_gc]
@@ -445,7 +445,7 @@ class GC_correction:
         #print self.sum_read_depth
         #print self.n_locations
         #print GC_width
-        correction_tuple=kgf.get_GC_depth_correction_vect(list(self.sum_read_depth.values()),list(self.n_locations.values()),GC_width)
+        correction_tuple=kgf.get_GC_depth_correction_vect(self.sum_read_depth.values(),self.n_locations.values(),GC_width)
 
         (GCp,ave_depths,GCp2_8,lowess_depth,correction,mu) = correction_tuple
         #print GCp
@@ -467,14 +467,14 @@ class GC_correction:
 def calc_gc_correction(indiv_lib_output_dir,indiv,bac_wssd,hg_wssd,control_bacs,GC_width,wssd_dim):
     #GC correctino is calculated for the 2 copy bacs
     GC_corr = GC_correction(GC_width)
-    for bac_name,bac in control_bacs.items():
+    for bac_name,bac in control_bacs.iteritems():
         if(bac.cp==2):
             if(bac.source == 'hg18'):
                 GC_corr.add_wssd_file(hg_wssd,bac,wssd_dim)
             elif(bac.source == 'bac'):
                 GC_corr.add_wssd_file(bac_wssd,bac,wssd_dim)
             else:
-                print("error, undefinced ousrce ",bac.source)
+                print "error, undefinced ousrce ",bac.source
                 sys.exit(1)
 
     fn = "%s/cn2-gc-depth-dim%d.txt"%(indiv_lib_output_dir,wssd_dim)
@@ -490,7 +490,7 @@ class hist:
         self.bins = zeros(3000)
 
     def add_file(self,file):
-        print("loading..." , file)
+        print "loading..." , file
         data = np.loadtxt(file)
         self.bins+=data
 
@@ -525,7 +525,7 @@ class fuguized_bac_collector:
                 elif(curr_bac.source=="hg18"):
                     bac_fuguized_depth = get_total_fuguized_adjusted_depth(hg_wssd,"wssd",curr_bac.gc_content_table,"GC_content",bac,gc_correction_vect,curr_bac.mask,curr_bac.chr,curr_bac.start,curr_bac.end,wssd_dim)
                 else:
-                    print("source error " , curr_bac.source)
+                    print "source error " , curr_bac.source
                     sys.exit(1)
 
                 self.data = r_[self.data,bac_fuguized_depth]
@@ -570,12 +570,12 @@ def do_fit_indiv(cn,fuguized_bac,fig_num):
     x=np.arange(3000)
     y=h.pdf
     pinit = [60, 100]
-    print("doing fit")
+    print "doing fit"
     out = scipy.optimize.leastsq(errfunc, pinit,args=(x,y), full_output=1)
-    print(out)
+    print out
     xs = out[0]
 
-    print(xs)
+    print xs
     fit_ys = fitfunc(xs,x)
 
     figure(fig_num)
@@ -597,7 +597,7 @@ def do_fit_curves(hist_labels,cns,fuguized_bac_collection,fig_num,indiv_director
         cn = cns[i]
         label = hist_labels[i]
         strhists.append(str(cn))
-        print("fitting parameters for ", cn , "...")
+        print "fitting parameters for ", cn , "..."
         fp=do_fit_indiv(cn,fuguized_bac_collection[label],fig_num);
         fit_params_u.append(fp[0])
         fit_params_sig.append(fp[1])
@@ -608,7 +608,7 @@ def do_fit_curves(hist_labels,cns,fuguized_bac_collection,fig_num,indiv_director
     mkdir(indiv_directory,"_filtered_libs_analysis")
     figurename = "%s/_filtered_libs_analysis/combined_libs_hist_fits-dim%d.png"%(indiv_directory,wssd_dim)
     savefig(figurename,format='png')
-    print(figurename)
+    print figurename
     close(fig_num)
 
     np_hist_cns = np.array(cns)
@@ -619,7 +619,7 @@ def do_fit_curves(hist_labels,cns,fuguized_bac_collection,fig_num,indiv_director
 
     figure(1)
     figure(2)
-    print(w)
+    print w
     pcorr_u=weighted_fit_line_get_corr(np_hist_cns,np_fit_params_u,w,1,"g")
     pcorr_sig=weighted_fit_line_get_corr(np_hist_cns,np_fit_params_sig,w,2,"g")
     #pcorr_u=fit_line_get_corr(np_hist_cns,np_fit_params_u,1,"g")
@@ -631,7 +631,7 @@ def do_fit_curves(hist_labels,cns,fuguized_bac_collection,fig_num,indiv_director
     t = "u vs cn, pearson correlation of:",pcorr_u[0]
     title(t)
     savefig(figurename,format='png')
-    print(figurename)
+    print figurename
     close(1)
 
     figure(2)
@@ -640,11 +640,11 @@ def do_fit_curves(hist_labels,cns,fuguized_bac_collection,fig_num,indiv_director
     t = "sig vs cn, pearson correlation of:",pcorr_sig[0]
     title(t)
     savefig(figurename,format='png')
-    print(figurename)
+    print figurename
     close(2)
 
-    print("u corr:",pcorr_u)
-    print("sig corr:", pcorr_sig)
+    print "u corr:",pcorr_u
+    print "sig corr:", pcorr_sig
 
     fn_fit_u_sigs = "%s/_filtered_libs_analysis/fit_params_dim%d"%(indiv_directory,wssd_dim)
     f_fit_u_sigs = open(fn_fit_u_sigs,"w")
@@ -878,7 +878,7 @@ def make_failed_output(indiv_lib_output_dir):
 
 def    run_batch_analysis(genome_info,output_dir,total_unmasked_len,input_hg_dir,control_bacs,GC_width,fn_hg18_contigs,wssd_dim,input_wssd_name,curr_genome):
 
-    print(input_hg_dir)
+    print input_hg_dir
 
     ls = os.listdir("%s"%(input_hg_dir))
     for dir in ls:
@@ -902,13 +902,13 @@ def    run_batch_analysis(genome_info,output_dir,total_unmasked_len,input_hg_dir
             #wssd_dir = "%s/wssd_out/"%(lib_dir)
             wssd_hg18_dir = "%s/wssd_out/"%(lib_hg18_dir)
             eds = ["0","01","012"]
-            print("analyzing %s \noutputing to %s"%(lib_hg18_dir,indiv_lib_output_dir))
+            print "analyzing %s \noutputing to %s"%(lib_hg18_dir,indiv_lib_output_dir)
             #OPEN THE WSSD FILE
 
             fnhg_wssd = "%s/%s"%(lib_hg18_dir,input_wssd_name)
             #fnhg_wssd = "%s/hg18rmsk.wssd"%(lib_hg18_dir)
 
-            print(fnhg_wssd)
+            print fnhg_wssd
             #bac_wssd = WssdFile(fn_bac_contigs,
             #                                fnbac_wssd,
             #                                overwrite = False,
@@ -927,9 +927,9 @@ def    run_batch_analysis(genome_info,output_dir,total_unmasked_len,input_hg_dir
                 continue
 
             #make_bac_plots(control_bacs,bac_wssd,indiv_lib_output_dir,mask,mask_grps)
-            print("output_dir %s"%(output_dir))
+            print "output_dir %s"%(output_dir)
             gc_depths_file = "%s/%s/%s/cn2-gc-depth-WG-W%d-dim%d.txt"%(output_dir,indiv,lib,GC_width,wssd_dim)
-            print(gc_depths_file)
+            print gc_depths_file
             #gc_correction_tup = #calc_gc_correction(indiv_lib_output_dir,indiv,bac_wssd,hg_wssd,control_bacs,GC_width,wssd_dim)
             gc_correction_tup = kgf.get_GC_depth_correction_from_file(gc_depths_file,3)
             run_bac_analysis(output_dir,indiv,lib,total_unmasked_len,gc_correction_tup,bac_wssd,hg_wssd,control_bacs,wssd_dim)
@@ -958,23 +958,23 @@ def get_lib_cov_corr(lib_dir):
 def analyze_coverage_to_correlation(analysis_dir):
 
     #anal_by_alg    = {}
-    print("************************")
-    print("analyze_coverage_to_correlation")
-    print("************************")
+    print "************************"
+    print "analyze_coverage_to_correlation"
+    print "************************"
 
     s_analysis_dir =  analysis_dir.split("/")
     pilot = s_analysis_dir[len(s_analysis_dir)-2]
 
-    print(s_analysis_dir)
+    print s_analysis_dir
     pass_thresh = 0;
     total = 0
     ls_algs = os.listdir(analysis_dir)
     for alg in ls_algs:
         if(alg != "mrsfast"):
             continue
-        print(analysis_dir)
+        print analysis_dir
         alg_dir = "%s/%s"%(analysis_dir,alg)
-        print(alg_dir)
+        print alg_dir
         ls_indivs = os.listdir(alg_dir)
 
         anal_by_indivs = {}
@@ -1032,7 +1032,7 @@ def analyze_coverage_to_correlation(analysis_dir):
 
     if do_plot:
         savefig(figurename,format='png')
-        print(figurename)
+        print figurename
         close(1)
 
 
@@ -1109,8 +1109,8 @@ def make_bac_plots(bacs,wssd,analysis_dir_out,mask,mask_grps):
 
 
     sp = 1
-    for bac_name,bac in bacs.items():
-        print("plotting %s..."%(bac_name))
+    for bac_name,bac in bacs.iteritems():
+        print "plotting %s..."%(bac_name)
         assert(bac_name==bac.name)
         #bac = "control_bac_perbase_depth_ed012.txt.%s.txt"%(bac.name)
         depth = wssd.depth["wssd"][bac.name][:,:,0].sum(1)
@@ -1131,7 +1131,7 @@ def make_bac_plots(bacs,wssd,analysis_dir_out,mask,mask_grps):
 
     #fset_size_inches((100,10))
         ylabel("depth")
-        print(figure_name)
+        print figure_name
         savefig(figure_name,format='png')
         close(1)
 
@@ -1187,13 +1187,13 @@ if __name__=='__main__':
     #(total_unmasked_len,control_bacs) = load_control_bac_objects(bac_list_file,bac_mask,bac_gc_content_table)
     (total_unmasked_len,control_bacs) = load_control_bac_objects(o.fn_bac_list_file,hg_mask,hg_gc_content_table,o.genome)
 
-    print(len(control_bacs))
-    print(total_unmasked_len)
+    print len(control_bacs)
+    print total_unmasked_len
     #(additional_unmasked_len) = load_additional_control_regions(control_bacs,o.fn_additional_control_regions,hg18_mask,hg18_gc_content_table)
     #print "additional", additional_unmasked_len
     #total_unmasked_len+=additional_unmasked_len
 
-    print(len(control_bacs))
+    print len(control_bacs)
 
     mask_grps = ["RM","WM","TRF"]
 
@@ -1202,22 +1202,22 @@ if __name__=='__main__':
     for in_genome_line in open(o.fn_input_genomes,'r').readlines():
         (genome_name,fn_wssd_dir,fn_bac_dir,chunk_dir,genome_out) = in_genome_line.split()
 
-        print(genome_info.genomes[genome_name].sex)
-        print(genome_name)
+        print genome_info.genomes[genome_name].sex
+        print genome_name
 
         indiv = genome_name.split(".")[0]
 
         if(o.do_dist_analysis):
             #batches = o.batches.rstrip("\n").split(":")
             #run_dist_analysis(o.index_file,total_unmasked_len,control_bacs,batches,o.input_dir,output_dir,o.sex_index,fnbac_contigLengths,mask,mask_grps,GC_width,gc_content_table)
-            print("running dist analysis...")
+            print "running dist analysis..."
             run_dist_analysis(genome_info,total_unmasked_len,control_bacs,fn_bac_dir,fn_wssd_dir,o.GC_width,o.fn_hg_contigs,0,o.input_wssd_file_names,indiv)
             run_dist_analysis(genome_info,total_unmasked_len,control_bacs,fn_bac_dir,fn_wssd_dir,o.GC_width,o.fn_hg_contigs,1,o.input_wssd_file_names,indiv)
         if(o.analyze_cov_to_corr):
             analyze_coverage_to_correlation(o.analysis_root_dir)
         if(o.build_hists):
-            print("ARE YOU SURE YOU WANT TO BUILD HISTS!")
-            print("CURRENTLY the FIT PARAMETERS SCRIPT is building hists")
+            print "ARE YOU SURE YOU WANT TO BUILD HISTS!"
+            print "CURRENTLY the FIT PARAMETERS SCRIPT is building hists"
             #select_libs_build_hists(o.input_bac_dir,o.input_hg18_dir,analysis_dir,control_bacs,o.fn_bac_contigs,o.fn_hg18_contigs,subset)
 
 

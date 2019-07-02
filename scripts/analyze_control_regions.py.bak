@@ -31,7 +31,7 @@ def mkdir(dir,file):
     ls_dir = os.listdir(dir)
     if(not(file_exists(ls_dir,file))):
         command = "mkdir %s/%s"%(dir,file)
-        print(command)
+        print command
         os.system(command)
     return "%s/%s"%(dir,file)
 
@@ -82,9 +82,9 @@ def fit_line(mus,cps,force_zero=0):
 def sum_g(dists,i,group_size,n_single):
     sum = np.zeros(dists[i].shape[0])
     i=i*group_size + n_single
-    print("\tmade from:")
+    print "\tmade from:"
     for k in range(group_size):
-        print("\t",k+i)    
+        print "\t",k+i    
         sum+= dists[k+i]
 
     sum /= group_size
@@ -140,11 +140,11 @@ def import_bac_regions(fn_in_bacs,regions,only_use_cps):
         cp=int(name.split(",")[1])
     
         name = "%d_%s_%s_%s_%s"%(cp, name, chr,start,end)
-        print(name)
+        print name
         newregion = region(chr,start,end,cp,name)
         if only_use_cps == None or cp in only_use_cps:
             regions.append(newregion)
-            print("using region:", cp, chr, start, end)
+            print "using region:", cp, chr, start, end
 
 def import_tomas_regions(fn_in_tomas,regions):
     lines = open(fn_in_tomas,'r').readlines()
@@ -166,7 +166,7 @@ def import_tomas_regions(fn_in_tomas,regions):
 
 def output_regions_bed(regions):
     for region in regions:
-        print(region.chr,region.start,region.end)
+        print region.chr,region.start,region.end
 
 
 def add_depth_to_fig(fignum,depth,sp,name,n):
@@ -197,7 +197,7 @@ def analyze_regions(regions,input_wssd,mask_wssd,output_file,group):
   
         figure_name = "%s%d.control_region_plot.jpg"%(output_file,k)
         ylabel("depth")
-        print(figure_name)
+        print figure_name
         savefig(figure_name,format='png')
         close(1)
         
@@ -263,13 +263,13 @@ def simple_fit_params(regions,region_depths,cat_regions_by_cp,input_wssd,mask_ws
     fn_out_file = "%s.cat_bac_params"%(out_file_name)
     fout = open(fn_out_file,'w')
     
-    for cp,depth in cat_regions_by_cp.items():
-        print("fitting simple")
+    for cp,depth in cat_regions_by_cp.iteritems():
+        print "fitting simple"
         p = str(depth.mean())
         p = "%f %f"%(depth.mean(),sqrt(depth.var()))
 
         params[cp] = p
-        print(p)
+        print p
         reg_len = depth.shape[0]    
         fout.write("%d %s %d\n"%(cp,p,reg_len))    
 
@@ -309,19 +309,19 @@ def fit_params(regions,region_depths,cat_regions_by_cp,input_wssd,mask_wssd,wind
     fn_out_file = "%s.cat_bac_params"%(out_file_name)
     fout = open(fn_out_file,'w')
     
-    for cp,depth in cat_regions_by_cp.items():
+    for cp,depth in cat_regions_by_cp.iteritems():
         #hists[cp] = np.histogram(depth,bins=3000,range=[0,3000])[0].astype(float64)    
         #print cp , hists[cp]
         #hists[cp] = hists[cp]/hists[cp].sum()
         #plot(hists[cp][0:150])
         #leg.append(str(cp))
-        print("fitting %s"%(type))
+        print "fitting %s"%(type)
         #depth = depth[0:depth.shape[0]:10]
         p = fit_dist_to_data(depth,type)
         p=[str(ap) for ap in p]
 
         params[cp] = p
-        print(p)
+        print p
         reg_len = depth.shape[0]    
         fout.write("%d %s %d\n"%(cp," ".join(p),reg_len))    
 
@@ -371,7 +371,7 @@ def fit_dist_to_data(input_data,type='lsq'):
     if(type=='weibull_lsq'):
         return new_fit.fit_by_weibull_lsq()
     else:
-        print("ERROR, no type %s"%(type))
+        print "ERROR, no type %s"%(type)
         sys.exit(1)
 
 def graph_line(ys,xs,ps,outfile):
@@ -401,10 +401,10 @@ def load_region_depths(regions,wssd_input,mask_wssd,dim,input_group,indiv,edit):
     region_depths = {}
     cat_regions_by_cp = {}
 
-    print("getting regions %d..."%(dim))
+    print "getting regions %d..."%(dim)
 
     for region in regions:
-        print("getting %s"%(region.name))
+        print "getting %s"%(region.name)
 
 
         if(edit == -1):
@@ -416,7 +416,7 @@ def load_region_depths(regions,wssd_input,mask_wssd,dim,input_group,indiv,edit):
         depth = depth[np.where(masked==0)] #JUST THE DEPTHS FOR THE HIST 
     
         if(region.name in region_depths):
-            print("ERROR - duplicate region name %s"%(region.name))
+            print "ERROR - duplicate region name %s"%(region.name)
             sys.exit(1)
 
         region_depths[region.name] = depth
@@ -426,7 +426,7 @@ def load_region_depths(regions,wssd_input,mask_wssd,dim,input_group,indiv,edit):
         else:    
             cat_regions_by_cp[region.get_cp(indiv)] = depth
 
-    print("done")
+    print "done"
     return region_depths,cat_regions_by_cp
 
 def fit_params_on_input_genomes(fn_input_genomes,regions,mask_wssd,fn_contigs,wssd_file_name,bac_type,output_dir_name,types,edits):
@@ -448,12 +448,12 @@ def fit_params_on_input_genomes(fn_input_genomes,regions,mask_wssd,fn_contigs,ws
         #fn_output_dir = "%s/%s/_filtered_libs_analysis"%(bac_loc,indiv)
         fn_output_dir = mkdir(indiv_bac_dir,output_dir_name) 
     
-        print(fn_in_wssd)
+        print fn_in_wssd
         if(not(os.path.exists(fn_output_dir)) or not(os.path.exists(fn_in_wssd))): continue
 
         input_group = "wssd.combined_corrected" 
 
-        print(fn_in_wssd)
+        print fn_in_wssd
         adjusted_wssd = WssdFile(fn_contigs,
                                                 fnWssd=fn_in_wssd,
                                                 overwrite=False,
@@ -501,7 +501,7 @@ def analyze_yoruba_trio_uncorrected(combined_libs_dir,fn_input_genomes,regions,m
         if(genome[0:6] =="NA1850"):
             genome = genome.split(".")[0]
             fn_in_wssd = "%s/%s/combined/hg18rmsk.wssd"%(wssd_libs_loc,genome)
-            print(fn_in_wssd)
+            print fn_in_wssd
             adjusted_wssd = WssdFile(fn_contigs,
                                                 fnWssd=fn_in_wssd,
                                                 overwrite=False,
@@ -552,7 +552,7 @@ if __name__=='__main__':
 
     edits = [int(e) for e in o.edits.split(":")]
     
-    print("edits: ",edits)
+    print "edits: ",edits
 
     if o.only_use_cps != None:
         only_use_cps = [int(e) for e in o.only_use_cps.split(":")]
@@ -561,7 +561,7 @@ if __name__=='__main__':
     
     import_bac_regions(o.fn_in_bacs,regions,only_use_cps)
 
-    print(o.bac_type)
+    print o.bac_type
 
     types = ['gaussian_lsq','cont_poisson','gaussian']
 
@@ -569,7 +569,7 @@ if __name__=='__main__':
         if o.type in types or o.type == 'simple':
             types = [o.type]
         else:
-            print(o.type)    
+            print o.type    
             sys.exit(1)
 
     mask_wssd = DenseTrackSet(o.fn_contigs,

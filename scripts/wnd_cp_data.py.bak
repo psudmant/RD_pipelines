@@ -22,13 +22,13 @@ class dCGH():
             nans_locs = arrayToNonZeroContigRanges(np.isnan(ratios))
             infs_locs = arrayToNonZeroContigRanges(np.isinf(ratios))
             
-            for i in range(nans_locs.shape[0]):
+            for i in xrange(nans_locs.shape[0]):
                 start,end=nans_locs[i]
                 l=(start==0) and end or start-1
                 r=end>=(ratios.shape[0]-1) and start-1 or end
                 ratios[start:end] = (ratios[l]+ratios[r])/2.0 
             
-            for i in range(infs_locs.shape[0]):
+            for i in xrange(infs_locs.shape[0]):
                 start,end=infs_locs[i]
                 l=start==0 and end or start-1
                 r=end>=(ratios.shape[0]-1) and start-1 or end
@@ -69,7 +69,7 @@ class wnd_cp_indiv:
        wnd = int(fn_dts.split("/")[-1].split("_bp")[0])
        assert int(wnd)==wnd_size
        self.wnd_size = wnd_size
-       print(fn_dts)
+       print fn_dts
        self.wnd_DTS = DenseTrackSet(fn_contigs,
                                    fn_dts,
                                    overwrite=False,
@@ -122,7 +122,7 @@ class wnd_cp_indiv:
         if correct:
             where_not_0 = np.where(cps!=0)
             adj=2-np.median(cps[where_not_0])
-            print("correct by:%f median: %f mean: %f"%(adj,np.median(cps),np.mean(cps)))
+            print "correct by:%f median: %f mean: %f"%(adj,np.median(cps),np.mean(cps))
             cps[where_not_0] = cps[where_not_0]+adj
         return cps
               

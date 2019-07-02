@@ -55,10 +55,10 @@ class genome_data:
 
         self.sunk_based = sunk_based
 
-        print(fn_fit_params)
-        print(fn_wssd)
+        print fn_fit_params
+        print fn_wssd
         self.fn_wssd = fn_wssd
-        print("**********")
+        print "**********"
         mtxParams = np.array([ [float(x) for x in line.replace('\n','').strip().split()[1:]]
                               for line in open(fn_fit_params,'r') ],'float64')
         cps=mtxParams[:,0]
@@ -66,10 +66,10 @@ class genome_data:
         sigs=mtxParams[:,2]
         nbps=mtxParams[:,3]
 
-        print(cps)
-        print(mus)
-        print(sigs)
-        print(nbps)
+        print cps
+        print mus
+        print sigs
+        print nbps
         
         self.mtxParams = mtxParams
         thruZero=True
@@ -150,7 +150,7 @@ def get_wnds_mean(wssd,chr,start,end,wnds,mask,wnd_width,sunk_based=False):
             masked_region = mask['mask'][chr][start:end,:].sum(1)>0
 
         #    return -1
-        print(sdepths_working_chunk)
+        print sdepths_working_chunk
         sdepths_working_chunk[np.where(masked_region==1)] = 0
         #print sdepths_working_chunk.shape
         #print sdepths_working_chunk
@@ -178,7 +178,7 @@ def hash_bed_val_by_loc(input_bed,val_loc=3,dict_vals=False,alt_key=None):
             sline = line.split()
             chr,start,end = sline[0:3]
             c_dict = {}
-            for i in range(len(sheader)):
+            for i in xrange(len(sheader)):
                 c_dict[sheader[i]] = sline[i] 
             
             if alt_key!=None:
@@ -235,7 +235,7 @@ def read_table_in(F,header_list=None,hash=False,hash_off_s=0,hash_off_e=1,splitt
         header = header_list
 
     if hash:
-        print("WARNING hashing values on key %d-%d %s, collisions will not be resolved"%(hash_off_s, hash_off_e,":".join(header[hash_off_s:hash_off_e])), file=stderr)
+        print >>stderr,"WARNING hashing values on key %d-%d %s, collisions will not be resolved"%(hash_off_s, hash_off_e,":".join(header[hash_off_s:hash_off_e]))
         table = dict([(":".join(line.split(splitter)[hash_off_s:hash_off_e]),dict([(header[i],item) for i,item in enumerate(line.rstrip().split(splitter))])) for line in F.readlines()])
         F.seek(0)
         if header_list==None: F.readline()
@@ -319,7 +319,7 @@ class regions_from_bed:
             ret_vals = None
 
         if truncate_to_query:
-            for i in range(region_intervals['start'].shape[0]):
+            for i in xrange(region_intervals['start'].shape[0]):
                 region_intervals['start'][i] = max(start, region_intervals['start'][i])    
                 region_intervals['end'][i] = min(end, region_intervals['end'][i])    
 
@@ -365,7 +365,7 @@ class regions_from_bed:
         overlapping_regions[:,1] = np.amin(np.c_[overlapping_regions[:,1],np.zeros(n_regions)+end],axis=1)
         
         covered_array = np.zeros(end-start)
-        for i in range(n_regions):
+        for i in xrange(n_regions):
             covered_array[overlapping_regions[i,0]-start:overlapping_regions[i,1]-start]+=1
         
         covered = np.sum(covered_array>0)
@@ -455,12 +455,12 @@ def get_regions(fn,mask,chunk_iter=3e7,wnd_width=1000,in_chr=None,in_start=None,
     
         for chr in mask.mContigNameLen:
             if chr.find("random") != -1:
-                print("skipping ", chr)
+                print "skipping ", chr
                 continue
             
             if in_chr!=None and chr != in_chr: continue
 
-            print("working on ", chr)
+            print "working on ", chr
             #chunk_iter = 3e7
             currChromLen = mask.mContigNameLen[chr]
             chunkStart = 0
@@ -472,28 +472,28 @@ def get_regions(fn,mask,chunk_iter=3e7,wnd_width=1000,in_chr=None,in_start=None,
                 curr_mask = mask['mask'][chr][0:currChromLen,:].sum(1)>0
         
             chr_wnd_bnds,max_wnd = getBoundsForEqualWeightedWindows(curr_mask,0,currChromLen,wnd_width,fillout)
-            print(chr_wnd_bnds)
-            print(max_wnd)
+            print chr_wnd_bnds
+            print max_wnd
 
             chr_wnd_bnds_by_chunk_idx = np.r_[np.where(np.diff(np.floor(chr_wnd_bnds[:,1]/chunk_iter))==1)[0],chr_wnd_bnds.shape[0]-1]
             
 
-            print(chr_wnd_bnds_by_chunk_idx)
+            print chr_wnd_bnds_by_chunk_idx
 
             wnd_bnds_chunks_idx = np.c_[np.r_[0,chr_wnd_bnds_by_chunk_idx[0:chr_wnd_bnds_by_chunk_idx.shape[0]-1]],chr_wnd_bnds_by_chunk_idx[:]]  
-            print("chr_wnd_bnds_by_chunk_idx", chr_wnd_bnds[chr_wnd_bnds_by_chunk_idx])
-            print("wnd_bnds_chunks_idx", wnd_bnds_chunks_idx)
-            for xi in range(wnd_bnds_chunks_idx.shape[0]):
+            print "chr_wnd_bnds_by_chunk_idx", chr_wnd_bnds[chr_wnd_bnds_by_chunk_idx]
+            print "wnd_bnds_chunks_idx", wnd_bnds_chunks_idx
+            for xi in xrange(wnd_bnds_chunks_idx.shape[0]):
                 
                 idx_start,idx_end =  wnd_bnds_chunks_idx[xi,:]
                 chunk_start = chr_wnd_bnds[wnd_bnds_chunks_idx[xi,0]][0] 
                 chunk_end = chr_wnd_bnds[wnd_bnds_chunks_idx[xi,1]][1] 
                 
                 associated_windows = chr_wnd_bnds[idx_start:idx_end]-chunk_start
-                print(associated_windows)
+                print associated_windows
 
-                print(chunk_start)
-                print(chunk_end)
+                print chunk_start
+                print chunk_end
                 regions_chrs.append(chr)
                 regions_coords.append(tuple([chunk_start,chunk_end]))
                 wnds.append(associated_windows)
@@ -581,11 +581,11 @@ def get_genome_pop_hash(index_files,sex_index):
         indiv_pop = indiv_pop.split("_")[0]
         indiv_pop = indiv_pop.split("-")[0]
         indiv_pop = indiv_pop.upper()
-        for pop,ids in pops.items():
+        for pop,ids in pops.iteritems():
             if(indiv_pop in ids):
                 return pop.upper()
 
-        print("not found",indiv_pop)
+        print "not found",indiv_pop
 
 
     genome_pop_hash = {}
@@ -609,15 +609,15 @@ def get_adjusted_depth(wssd,grpWssd,GC_content_table,grpGC,chr,start,end,gc_corr
     #print GC_content_table[grpGC][chr][start:end]
 
     #print chr
-    if(v):print("getting gc correction...")
+    if(v):print "getting gc correction..."
     adjustment = gc_correction_vect.take(GC_content_table[grpGC][chr][start:end])    
-    if(v):print("getting depths...")
+    if(v):print "getting depths..."
     depths = np.nan_to_num(wssd.depth[grpWssd][chr][start:end,:,wssd_dim]).astype(np.float64).sum(1)
-    if(v):print("performing adjustment...")
+    if(v):print "performing adjustment..."
     adjusted_depth = depths*adjustment
     #adjusted_depth[np.where(adjusted_depth<0)]=0
 
-    if(v):print("original depth track len %d"%(adjusted_depth.shape[0]))
+    if(v):print "original depth track len %d"%(adjusted_depth.shape[0])
     return adjusted_depth
 
 
@@ -626,8 +626,8 @@ def arrayContigRangeAndVal( A ):
     dA=np.diff(A)
     N=A.shape[0]
     nzdA,=np.nonzero(dA)
-    print(np.nonzero(dA))
-    print(nzdA)
+    print np.nonzero(dA)
+    print nzdA
     liRangesAll=np.c_[ np.r_[0,nzdA+1],np.r_[nzdA,N-1],A[np.r_[0,nzdA+1]] ]
     return liRangesAll
 
@@ -652,8 +652,8 @@ def make_adjusted_depth_binary(indiv,wssd_lib_dir,bac_analysis_lib_dir,chr,start
 
     adjusted_depth = np.cast['i4'](np.around(adjusted_depth))
     output_matrix = np.c_[adjusted_depth,mask_chunk]
-    print(output_matrix)
-    print(output_matrix.dtype)
+    print output_matrix
+    print output_matrix.dtype
     output_matrix.tofile(fnout)        
 
 def load_gc_correction_vect(lib_dir,wssd_dim):
@@ -686,8 +686,8 @@ def get_region_from_indiv(indiv,wssd_lib_dir,bac_analysis_lib_dir,chr,start,end,
                                                         openMode='r') 
 
     read_depth = np.zeros(end-start)
-    print(read_depth)
-    print(end-start)
+    print read_depth
+    print end-start
 
     libls = os.listdir(bac_analysis_lib_dir)
     for lib in libls:
@@ -695,18 +695,18 @@ def get_region_from_indiv(indiv,wssd_lib_dir,bac_analysis_lib_dir,chr,start,end,
             continue
         lib_qc_dir = "%s/%s"%(bac_analysis_lib_dir,lib)
         if(kgf.lib_pass_qc(lib_qc_dir)):
-            print("library %s passed qc: loading..."%(lib))
+            print "library %s passed qc: loading..."%(lib)
             fn_wssd = "%s/%s/hg18rmsk.wssd"%(wssd_lib_dir,lib)
             gc_correction_vect = load_gc_correction_vect(lib_qc_dir)
 
-            print("opening wssd %s"%(fn_wssd))
+            print "opening wssd %s"%(fn_wssd)
 
             wssd = WssdFile(fn_contig,
                                             fn_wssd,
                                             overwrite=False,
                                             openMode='r') 
 
-            print("wssd opened..")
+            print "wssd opened.."
             grpWssd = "wssd"
             grpGC = "GC_content"
             read_depth+=get_adjusted_depth(wssd,grpWssd,gc_content_table,grpGC,chr,start,end,gc_correction_vect,0)
@@ -730,14 +730,14 @@ def init_bed(fn_bed_out):
 
 def output_wiggle(outStarts,values,chr,name,fnOut,step):
 
-    print("outputting %s..."%(fnOut))
+    print "outputting %s..."%(fnOut)
     fout = open(fnOut,"w")
     fout.write("track type=wiggle_0 name=%s_depths\nvariableStep span=%d chrom=%s\n"%(name,step,chr))
 
     for i in range(len(outStarts)):
         fout.write("%d %d\n"%(outStarts[i],values[i]))
     #output = np.c_(outStarts,values)
-    print("done")
+    print "done"
 
 
 class contig:
@@ -764,8 +764,8 @@ def get_contig_objects(fn_contig):
 
 def calkan_window_avg_masked(depth,mask,start,end,width,slide,type='mean'): 
 
-    print(mask.shape[0])
-    print(depth.shape[0])
+    print mask.shape[0]
+    print depth.shape[0]
     assert(mask.shape[0]==depth.shape[0])
 
     cat_unmasked = depth[np.where(mask==0)]    
@@ -773,10 +773,10 @@ def calkan_window_avg_masked(depth,mask,start,end,width,slide,type='mean'):
     convolution = np.convolve(cat_unmasked.astype(np.uint16),kernel,'full')
 
     n_windows = ((cat_unmasked.shape[0]/width)-1)*(width/slide)+1
-    print(cat_unmasked.shape[0])
-    print(width)
-    print(slide)
-    print("**")
+    print cat_unmasked.shape[0]
+    print width
+    print slide
+    print "**"
 
 
     if(type=='mean'):
@@ -791,8 +791,8 @@ def calkan_window_avg_masked(depth,mask,start,end,width,slide,type='mean'):
     #ie, indicating where a Start should be
     
     depth = convolution[convStarts]
-    print(n_windows, start, end)
-    print(convolution[convStarts].shape[0])
+    print n_windows, start, end
+    print convolution[convStarts].shape[0]
     assert(n_windows==convolution[convStarts].shape[0])
 
     startsArray = np.zeros(mask.shape[0],np.bool)
@@ -840,7 +840,7 @@ def output_bed_of_mask(mask,chr,start_coord,end_coord,fnout=None):
     
     for i in range(N):
         #outf.write("%s %d %d\n"%(chr,ranges[i][0],ranges[i][1]))
-        print("%s\t%d\t%d"%(chr,ranges[i][0],ranges[i][1]))
+        print "%s\t%d\t%d"%(chr,ranges[i][0],ranges[i][1])
     #outf.close()
 
 def make_bed_start_end_val(chr,starts,ends,val,fnout,name,append=False):
@@ -863,16 +863,16 @@ def make_big_wig(fn_temp_bed,fnOutBigWig,fnOutTrackDef,fn_contig_file):
     #fnOutBigWig = "%s/%s_%s.bw"%(browser_track_dir,genome,o.name)
     #fnOutTrackDef = "%s/%s_%s.trackdef"%(browser_track_dir,genome,o.name)
 
-    print(fnOutBigWig)
-    print(fnOutTrackDef)
+    print fnOutBigWig
+    print fnOutTrackDef
 
     command = "~/local_installations/ucscOLD/ucsc/bin/bedGraphToBigWig %s %s %s"%(fn_temp_bed,fn_contig_file,fnOutBigWig)
     os.system(command)
-    print(command)
+    print command
 
     track_def = """track type=bigWig name="%s_%s_%s" description="%s_%s" color=%s visibility=full autoScale=off alwaysZero=on maxHeightPixels=50:50:20 viewLimits=0.0:10 windowingFunction=mean smoothingWindow=3 yLineMark=2.0  yLineOnOff=on dataUrl=%s\n"""%(o.name,genome,sex,o.name,genome,color_str,fnOutBigWig)
     open(fnOutTrackDef,'w').write(track_def)
-    print(fnOutTempBedgr)
+    print fnOutTempBedgr
     
     if o.out_raw_bed:
         command = "mv %s %s/%s_%s.bed"%(fnOutTempBedgr, browser_track_BED_dir,genome,o.name)

@@ -18,16 +18,16 @@ import tables
 
 try:
     _cur_hostname = socket.gethostname()
-except Exception as e:
+except Exception, e:
     sys.stderr.write( 'Error occurred getting hostname' )
     
 try:
     import pysam
-except Exception as e:
+except Exception, e:
     sys.stderr.write('pysam import error')
     
 def debug_output( msg, indent=6 ):
-    print('%s{WSSD %s} [%s] %s'%( ''.join(' '*indent), _cur_hostname, time.ctime(), msg ), file=sys.stderr)
+    print >>sys.stderr, '%s{WSSD %s} [%s] %s'%( ''.join(' '*indent), _cur_hostname, time.ctime(), msg )
 
 ###########################################################################
 
@@ -270,7 +270,7 @@ class DenseTrackSet(object):
         debug_output('tallying coverage in %s:%d-%d'%(chromChunk, corngChunk[0], corngChunk[1]))
 
         lStartsClipped,lEndsClipped=mFieldLVals['startsClipped'],mFieldLVals['endsClipped']
-        for ir in range(lStartsClipped.shape[0]):
+        for ir in xrange(lStartsClipped.shape[0]):
             curArray[ lStartsClipped[ir]:lEndsClipped[ir]+1 ] += 1
         
         np.clip(curArray,0,2**16-1,curArray)
@@ -312,20 +312,20 @@ class DenseTrackSet(object):
         lFilesDone = [ len(l)==0 for l in lNextLine ]
         
         # skip past SAM headers
-        while any( [len(lNextLine[ifile])>0 and lNextLine[ifile][0]=='@' for ifile in range(len(lFns))] ):
-            for ifile in range(len(lFns)):
+        while any( [len(lNextLine[ifile])>0 and lNextLine[ifile][0]=='@' for ifile in xrange(len(lFns))] ):
+            for ifile in xrange(len(lFns)):
                 if len(lNextLine[ifile])==0:
                     lFilesDone[ifile]=True
                 elif lNextLine[ifile][0]=='@': 
                     lNextLine[ifile]=lFiles[ifile].readline().rstrip() 
         
-        lChromNextLine = [ (not lFilesDone[i]) and sam_get_chrom(lNextLine[i].split('\t')) or None for i in range(len(lFiles)) ]
+        lChromNextLine = [ (not lFilesDone[i]) and sam_get_chrom(lNextLine[i].split('\t')) or None for i in xrange(len(lFiles)) ]
         
         while not all(lFilesDone): 
             # find the next chromosome to process
             chromToProcess = min([c for c in lChromNextLine if c!=None])
             debug_output('%d files not done, %s is next chromosome to process'%( len([k for k in lFilesDone if k]), chromToProcess ))
-            liFilesToProcess = [ i for i in range(len(lFiles)) if lChromNextLine[i]==chromToProcess ]
+            liFilesToProcess = [ i for i in xrange(len(lFiles)) if lChromNextLine[i]==chromToProcess ]
             # if we encounter a chrom/contig name that we don't know about then skip it in all files.
             while not all(lFilesDone) and not chromToProcess in fxnGetGroup(tracksetBaseName): 
                 assert ignoreHitsToUnknownContigs, chromToProcess
@@ -343,7 +343,7 @@ class DenseTrackSet(object):
                     
                 if len([c for c in lChromNextLine if c!=None])>0:
                     chromToProcess = min([c for c in lChromNextLine if c!=None])
-                    liFilesToProcess = [ i for i in range(len(lFiles)) if lChromNextLine[i]==chromToProcess ]
+                    liFilesToProcess = [ i for i in xrange(len(lFiles)) if lChromNextLine[i]==chromToProcess ]
                     debug_output('%d files not done, %s is next chromosome to process'%( len([k for k in lFilesDone if k]), chromToProcess ))
                 else:
                     liFilesToProcess = []
@@ -490,7 +490,7 @@ class WssdFile(DenseTrackSet):
         lofsStarts,lofsEnds=mFieldLVals['startsClipped']-corngChunk[0],mFieldLVals['endsClipped']-corngChunk[0]
         lStartsInChunk=mFieldLVals['startsInside']
         lEds = mFieldLVals['eds']
-        for ir in range(lStartsInChunk.shape[0]):
+        for ir in xrange(lStartsInChunk.shape[0]):
             if ir%100000==0: debug_output('popul %d'%ir)  #jdbg
             curArray[ lofsStarts[ir]:lofsEnds[ir]+1, lEds[ir], 0 ] += 1
             if lStartsInChunk[ir]: 
@@ -831,7 +831,7 @@ def findBoundariesForAboutEqualWeightedWindowsMaxAndMinWidthEnforcedBreaks(
     
     lcoBreaksCheck=np.array( sorted(list(set( lcoBreaks.tolist()+[cooStop] ))) , 'int32' ) 
     _corngWnd=cooStart+lirngungWnd
-    for jbrkCheck in range(lcoBreaksCheck.shape[0]):
+    for jbrkCheck in xrange(lcoBreaksCheck.shape[0]):
         # find the first window starting after this break
         # while the next window is before the next break:   
         #    no - only one window here, continue
@@ -917,7 +917,7 @@ def perbaseToWindowAverageMaskedVariableBoundaries(
     
     ofsrngWnd = np.c_[ corngWnd[:,0] - 1 - (cooStart - 1), corngWnd[:,1] - (cooStart - 1) ]
     
-    for iwnd in range(corngWnd.shape[0]):
+    for iwnd in xrange(corngWnd.shape[0]):
         nBpUnmasked[iwnd] = (ofsrngWnd[iwnd,1]-ofsrngWnd[iwnd,0]+1) - arMasked[ ofsrngWnd[iwnd,0]:ofsrngWnd[iwnd,1]+1 ].sum()
         Vwndavg[iwnd] = ( V[ ofsrngWnd[iwnd,0]:ofsrngWnd[iwnd,1]+1 ] * (~arMasked[ofsrngWnd[iwnd,0]:ofsrngWnd[iwnd,1]+1]).astype('f') ).sum()
 
@@ -940,7 +940,7 @@ def extractPerBase(
     lcoVals=np.zeros((0,),'int32')
     lIdxRegionPerWnd = np.zeros((0,),'int32')
     
-    for iq in range(len(lchromQuery)):
+    for iq in xrange(len(lchromQuery)):
         chrom = lchromQuery[iq]
         
         corzWndCur = ( lcorngQuery[iq][0] - 1, 
@@ -1002,7 +1002,7 @@ def extractPerWnd(
     lcorngWndBnds = np.zeros((0,2),'int32')
     lIdxRegionPerWnd = np.zeros((0,),'int32')
     
-    for iq in range( len(lchromQuery) ):
+    for iq in xrange( len(lchromQuery) ):
         chrom = lchromQuery[iq]
         
         corngCur = lcorngQuery[iq]
@@ -1038,7 +1038,7 @@ def extractPerWnd(
         arValsWnds = np.zeros( (lcorngWndBnds.shape[0],), arTypeStr )
 
         # go thru windows fetching
-        for iwnd in range( lcorngWndBnds.shape[0] ):
+        for iwnd in xrange( lcorngWndBnds.shape[0] ):
             
             corzWndCur = lcorngWndBnds[iwnd,:]
             
@@ -1081,7 +1081,7 @@ def extractPerVarWndQuick(
     lcorngWndBnds = np.zeros((0,2),'int32')
     lIdxRegionPerWnd = np.zeros((0,),'int32')
     
-    for iq in range( len(lchromQuery) ):
+    for iq in xrange( len(lchromQuery) ):
         chrom = lchromQuery[iq]
         
         corngCur = lcorngQuery[iq]
@@ -1171,7 +1171,7 @@ def extractPerVarWndQuickDefinedWindows(
     
     arValsAllM = ma.masked_array( arValsAll, mask=mask )
 
-    for iw in range(lofsWnds.shape[0]):
+    for iw in xrange(lofsWnds.shape[0]):
         arSummaryVals[iw] = fxnProcessWnds( 
                 trkgrp, 
                 chromQuery, 

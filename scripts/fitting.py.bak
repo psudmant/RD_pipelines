@@ -15,7 +15,7 @@ class distribution:
 		ndist = norm(mu,sigma)
 		x = np.arange(ret_range[0],ret_range[1],ret_range[2])
 		correction_factor = 1-norm.cdf(0)	
-		print(correction_factor)
+		print correction_factor
 		ret = ndist.pdf(x)/correction_factor
 		return ret
 
@@ -86,7 +86,7 @@ class fit:
 
 	def fit_gamma(self):
 		p = scp.stats.gamma.fit(np.r_[self.input_data,1e-10])	
-		print(p)
+		print p
 		return  (p[0],p[2])
 
 	def fit_by_cont_poisson(self,ret_range=None):
@@ -98,8 +98,8 @@ class fit:
 		#p = scp.optimize.fmin(cont_poisson,pinit)
 		p = [x.mean()]
 		hist = np.histogram(self.input_data,bins=3000,range=[0,3000])[0].astype(np.float64)
-		print('param--->', p)
-		print("max", np.where(hist==np.max(hist)))
+		print 'param--->', p
+		print "max", np.where(hist==np.max(hist))
 		if(ret_range!=None):
 			cont_poisson_pmf = lambda p: ( (p**x)*np.exp(-p)/scp.special.gamma(x+1) ) 
 			x = ret_range

@@ -42,9 +42,9 @@ def do_lsqfit_thruzero(x,y,w,pinit,fitfunc):
 def sum_g(dists,i,group_size,n_single):
     sum = np.zeros(dists[i].shape[0])
     i=i*group_size + n_single
-    print("\tmade from:")
+    print "\tmade from:"
     for k in range(group_size):
-        print("\t",k+i)    
+        print "\t",k+i    
         sum+= dists[k+i]
 
     sum /= group_size
@@ -85,7 +85,7 @@ def make_emissions_DCPT(mus,sigmas,fn_out,card):
         output+="\n"
     
     for i in range(n_grouped):
-        print("making group",i)
+        print "making group",i
         sum = sum_g(dists,i,group_size,n_single)
         grouped_dists.append(sum)
         for j in range(max):
@@ -112,7 +112,7 @@ class LinearRegress:
         if xvals_use==None:
             liuseX=np.arange(self.x.shape[0])
         else:
-            liuseX=np.array([i for i in range(self.x.shape[0]) if abs(self.x[i]-xvals_use).min()<1e-6 ],'int32')
+            liuseX=np.array([i for i in xrange(self.x.shape[0]) if abs(self.x[i]-xvals_use).min()<1e-6 ],'int32')
                
             if liuseX.shape[0]==0:
                 sys.stderr.write('LinearRegress: warning, none of the specified domain values to use in fit was found: %s in %s\n'%(repr(xvals_use),repr(self.x)))
@@ -179,7 +179,7 @@ class TwoPieceNonSimulLinearRegress:
             liuseX_1=None
             self.xrngDomainLeftInclusive=[0.,1e40]  # second segment starts so high it will never be used
         else:
-            liuseX_0=np.array([i for i in range(self.x.shape[0]) if abs(self.x[i]-xvals_use_seg0).min()<1e-6 ],'int32')
+            liuseX_0=np.array([i for i in xrange(self.x.shape[0]) if abs(self.x[i]-xvals_use_seg0).min()<1e-6 ],'int32')
             
             if liuseX_0.shape[0]==0:
                 sys.stderr.write('LinearRegress: warning, none of the specified domain values to use in fit was found: %s in %s\n'%(repr(xvals_use_seg0),repr(self.x)))
@@ -189,7 +189,7 @@ class TwoPieceNonSimulLinearRegress:
             else:
                 if xvals_use_seg1 == None:
                     # no x points specified for segment 1 -- so use everything larger than the biggest seg0 point
-                    liuseX_1 = np.array([ i for i in range(self.x.shape[0]) 
+                    liuseX_1 = np.array([ i for i in xrange(self.x.shape[0]) 
                                          if self.x[i] - self.x[liuseX_0].max() > 1e-10 ], 'int32')
                     
                     if liuseX_1.shape[0]==0:
@@ -198,7 +198,7 @@ class TwoPieceNonSimulLinearRegress:
                     else:
                         self.xrngDomainLeftInclusive=[0., self.x[liuseX_1].min() - 1e-10 ]
                 else:
-                    liuseX_1=np.array([i for i in range(self.x.shape[0]) if abs(self.x[i]-xvals_use_seg1).min()<1e-6 ],'int32')
+                    liuseX_1=np.array([i for i in xrange(self.x.shape[0]) if abs(self.x[i]-xvals_use_seg1).min()<1e-6 ],'int32')
                     self.xrngDomainLeftInclusive=[0., self.x[liuseX_1].min() - 1e-10 ]
                 
             self.fit_params=[[],[]]
@@ -275,7 +275,7 @@ class TwoPieceNonSimulLinearRegress:
             else:
                 self.fit_params[1]=[1e50,0]  # this will force the yrngDomain to be very large for second segment.
              
-        print(self.fit_params)
+        print self.fit_params
                       
         self.yrngDomainLeftInclusive=[ self.fit_params[0][0]+self.fit_params[0][1]*self.xrngDomainLeftInclusive[0],
                                        self.fit_params[1][0]+self.fit_params[1][1]*self.xrngDomainLeftInclusive[1], ]
@@ -330,11 +330,11 @@ class ml_get_cp2_trunc_gaussian:
         self.mus = self.regressMu.regress(self.cns)
         self.sigs = regressSig.regress(self.cns)
         
-        self.trunc_rescale_ll = np.array( np.log( [ 1.0 - norm.cdf(0.,self.mus[icp],self.sigs[icp]) for icp in range(self.cns.shape[0]) ] ) )
-        self.lImpropNorms=[ norm(self.mus[icp],self.sigs[icp]) for icp in range(self.cns.shape[0]) ]
+        self.trunc_rescale_ll = np.array( np.log( [ 1.0 - norm.cdf(0.,self.mus[icp],self.sigs[icp]) for icp in xrange(self.cns.shape[0]) ] ) )
+        self.lImpropNorms=[ norm(self.mus[icp],self.sigs[icp]) for icp in xrange(self.cns.shape[0]) ]
         
-        for icp in range(self.cns.shape[0]):
-            print('from params: %s: %s -- %d  %.2f  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp],self.sigs[icp]))
+        for icp in xrange(self.cns.shape[0]):
+            print 'from params: %s: %s -- %d  %.2f  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp],self.sigs[icp])
                         
     def get_mle_cp(self,_depth):
         
@@ -346,7 +346,7 @@ class ml_get_cp2_trunc_gaussian:
             return (0., -np.inf)
         
         #LLimprop = np.array([ (np.log((norm.pdf(depth,self.mus[cp],self.sigs[cp]))+1e-100).sum()) for cp in self.cns ],'float64')
-        LL = np.array( [ (np.log( self.lImpropNorms[icp].pdf(depth) + 1e-100 ) - self.trunc_rescale_ll[icp]).sum() for icp in range(self.cns.shape[0]) ], 'float64'  )
+        LL = np.array( [ (np.log( self.lImpropNorms[icp].pdf(depth) + 1e-100 ) - self.trunc_rescale_ll[icp]).sum() for icp in xrange(self.cns.shape[0]) ], 'float64'  )
                 
         LLreal = LL[ np.where( ~(np.isnan(LL)|np.isinf(LL)|np.isneginf(LL)) )  ]
         if LLreal.shape[0] == 0:
@@ -391,11 +391,11 @@ class ml_get_cp2_trunc_gaussian_twoPieceRegress:
         self.mus = self.regressMu.regress(self.cns)
         self.sigs = regressSig.regress(self.cns)
                
-        self.trunc_rescale_ll = np.array( np.log( [ 1.0 - norm.cdf(0.,self.mus[icp],self.sigs[icp]) for icp in range(self.cns.shape[0]) ] ) )
-        self.lImpropNorms=[ norm(self.mus[icp],self.sigs[icp]) for icp in range(self.cns.shape[0]) ]
+        self.trunc_rescale_ll = np.array( np.log( [ 1.0 - norm.cdf(0.,self.mus[icp],self.sigs[icp]) for icp in xrange(self.cns.shape[0]) ] ) )
+        self.lImpropNorms=[ norm(self.mus[icp],self.sigs[icp]) for icp in xrange(self.cns.shape[0]) ]
         
-        for icp in range(self.cns.shape[0]):
-            print('from params: %s: %s -- %d  %.2f  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp],self.sigs[icp]))
+        for icp in xrange(self.cns.shape[0]):
+            print 'from params: %s: %s -- %d  %.2f  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp],self.sigs[icp])
                         
     def get_mle_cp(self,_depth):
         
@@ -407,7 +407,7 @@ class ml_get_cp2_trunc_gaussian_twoPieceRegress:
             return (0., -np.inf)
         
         #LLimprop = np.array([ (np.log((norm.pdf(depth,self.mus[cp],self.sigs[cp]))+1e-100).sum()) for cp in self.cns ],'float64')
-        LL = np.array( [ (np.log( self.lImpropNorms[icp].pdf(depth) + 1e-100 ) - self.trunc_rescale_ll[icp]).sum() for icp in range(self.cns.shape[0]) ], 'float64'  )
+        LL = np.array( [ (np.log( self.lImpropNorms[icp].pdf(depth) + 1e-100 ) - self.trunc_rescale_ll[icp]).sum() for icp in xrange(self.cns.shape[0]) ], 'float64'  )
         
         LLreal = LL[ np.where( ~(np.isnan(LL)|np.isinf(LL)|np.isneginf(LL)) )  ]
         if LLreal.shape[0] == 0:
@@ -450,8 +450,8 @@ class ml_get_cp2_cont_poisson_twoPieceRegress:
                            # can get hits from repetitive elts
         self.mus = self.regressMu.regress(self.cns)
         
-        for icp in range(self.cns.shape[0]):
-            print('from params: %s: %s -- %d  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp] ))
+        for icp in xrange(self.cns.shape[0]):
+            print 'from params: %s: %s -- %d  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp] )
 
     def get_mle_cp(self,_depth):
 
@@ -465,7 +465,7 @@ class ml_get_cp2_cont_poisson_twoPieceRegress:
         N=float(depth.shape[0])
         LL = np.array( [ (depth*np.log(self.mus[icp])).sum() - 
                         np.log( scipy.special.gamma(depth+1.0).clip(0.,1e300) ).sum() -             # gamma can overflow --> inf 
-                        N*self.mus[icp] + 1e-100 for icp in range(self.cns.shape[0]) ], 'float64') 
+                        N*self.mus[icp] + 1e-100 for icp in xrange(self.cns.shape[0]) ], 'float64') 
                                                 
         LLreal = LL[ np.where( ~(np.isnan(LL)|np.isinf(LL)|np.isneginf(LL)) )  ]
         if LLreal.shape[0] == 0:
@@ -509,8 +509,8 @@ class ml_get_cp2_cont_poisson:
                            # can get hits from repetitive elts
         self.mus = self.regressMu.regress(self.cns)
         
-        for icp in range(self.cns.shape[0]):
-            print('from params: %s: %s -- %d  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp] ))
+        for icp in xrange(self.cns.shape[0]):
+            print 'from params: %s: %s -- %d  %.2f'%(self.__class__.__name__, fnfit_params, int(self.cns[icp]), self.mus[icp] )
             
     def get_mle_cp(self,_depth):
 
@@ -524,7 +524,7 @@ class ml_get_cp2_cont_poisson:
         N=float(depth.shape[0])
         LL = np.array( [ (depth*np.log(self.mus[icp])).sum() - 
                         np.log( scipy.special.gamma(depth+1.0).clip(0.,1e300) ).sum() -             # gamma can overflow --> inf 
-                        N*self.mus[icp] + 1e-100 for icp in range(self.cns.shape[0]) ], 'float64') 
+                        N*self.mus[icp] + 1e-100 for icp in xrange(self.cns.shape[0]) ], 'float64') 
                         
         LLreal = LL[ np.where( ~(np.isnan(LL)|np.isinf(LL)|np.isneginf(LL)) )  ]
         if LLreal.shape[0] == 0:
@@ -562,7 +562,7 @@ def analyze_locations(ml,in_locations,fn_genome_analysis_dir,fn_contigs,fn_mask)
         masked_region = mask_wssd["mask"][chr][start:end,:].sum(1)>0
         depth = corrected_depth[np.where(masked_region==0)]
         cp,ll = ml.get_mle_cp(depth)
-        print(name,chr,start,end,cp[0],ll)
+        print name,chr,start,end,cp[0],ll
     
     combined_adjusted_wssd.tbl.close()
     mask_wssd.tbl.close()
@@ -572,7 +572,7 @@ def in_completed(fn_completed,indiv):
     for completed_indiv in open(fn_completed,'r').readlines():
         if( completed_indiv.split("/")[9] == indiv): return True
 
-    print("%s does not exist in %s, skipping"%(indiv,fn_completed))
+    print "%s does not exist in %s, skipping"%(indiv,fn_completed)
     return False
 
 if __name__=='__main__':
@@ -599,7 +599,7 @@ if __name__=='__main__':
 
         wssd_lib_dir = "%s/%s"%(fn_wssd_dir,genome)
         bac_analysis_lib_dir = "%s/%s"%(fn_bac_dir,genome_dir_name)
-        print(genome, genome_dir_name)
+        print genome, genome_dir_name
         filtered_libs_dir = "%s/_filtered_libs_analysis"%(bac_analysis_lib_dir)
         if(os.path.exists(filtered_libs_dir)):
             ml = ml_get_cp(bac_analysis_lib_dir)

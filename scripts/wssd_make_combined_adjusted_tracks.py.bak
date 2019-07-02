@@ -20,7 +20,7 @@ def mkdir(dir,file):
   ls_dir = os.listdir(dir)
   if(not(file_exists(ls_dir,file))):
     command = "mkdir %s/%s"%(dir,file)
-    print(command)
+    print command
     os.system(command)
 
 def file_exists(ls,file):
@@ -50,7 +50,7 @@ def get_passing_libs(bac_analysis_lib_dir,max_correction,overide_thresh):
 			continue
 		lib_qc_dir = "%s/%s"%(bac_analysis_lib_dir,lib)
 		if(kgf.lib_pass_qc(lib_qc_dir,overide_thresh)):
-			print("lib passed: %s"%(lib))
+			print "lib passed: %s"%(lib)
 			gc_correction_vects = []	
 			#gc_correction_vects.append(load_gc_correction_vect(lib_qc_dir,0))
 			#gc_correction_vects.append(load_gc_correction_vect(lib_qc_dir,1))
@@ -67,11 +67,11 @@ def load_wssds(passing_libs,lib_wssd_dir,fnContigLengths,wssd_file_name,alt_inpu
 		fnContigLengths = alt_input_contigs
 	
 	lib_wssds = {}	
-	for lib,lib_correction in passing_libs.items():
-		print(lib)	
+	for lib,lib_correction in passing_libs.iteritems():
+		print lib	
 		fn_lib_wssd = "%s/%s/%s"%(lib_wssd_dir,lib,wssd_file_name)	
 		#fn_lib_wssd = "%s/%s/hg18rmsk.wssd"%(lib_wssd_dir,lib)	
-		print(fn_lib_wssd)
+		print fn_lib_wssd
 		lib_wssd  = WssdFile(fnContigLengths,
 												fn_lib_wssd,
 												overwrite=False,
@@ -81,7 +81,7 @@ def load_wssds(passing_libs,lib_wssd_dir,fnContigLengths,wssd_file_name,alt_inpu
 	return lib_wssds
 
 def close_wssds(lib_wssds):
-	for lib,lib_wssd in lib_wssds.items():
+	for lib,lib_wssd in lib_wssds.iteritems():
 		lib_wssd.tbl.close()						
 
 
@@ -119,7 +119,7 @@ if __name__=='__main__':
 
 	if(o.no_correction):
 		append_to_name = o.i_append_to_name + ".no_correction"		
-		print(".............not applying correction..............")
+		print ".............not applying correction.............."
 	else:
 		append_to_name = o.i_append_to_name
 
@@ -138,7 +138,7 @@ if __name__=='__main__':
 	for in_genome in in_genomes:
 		(genome,fn_wssd_dir,fn_bac_dir,chunk_dir,genome_out) = in_genome.split()
 		if(not(genome_info.genomes[genome].passed_qc)):
-			print("genome failed")
+			print "genome failed"
 			continue
 
 		if o.alt_wssd_lambda !=None:
@@ -153,7 +153,7 @@ if __name__=='__main__':
 		wssd_lib_dir = "%s/%s"%(fn_wssd_dir,genome_orig_fn)
 		bac_analysis_lib_dir = "%s/%s"%(fn_bac_dir,genome_orig_fn)
 	
-		print(genome_out)
+		print genome_out
 		mkdir(genome_out,genome)
 		fn_indiv_out = "%s/%s/"%(genome_out,genome)
 		mkdir(fn_indiv_out,"combined_corrected_wssd")
@@ -173,7 +173,7 @@ if __name__=='__main__':
 
 		#1 get libraries
 		#2 make new wssd track file
-		print(fn_corrected_depths_out)
+		print fn_corrected_depths_out
 		adjusted_wssd_track = WssdFile(o.fnContigLengths,
                                        fnWssd=fn_corrected_depths_out,
                                        overwrite=True,
@@ -196,10 +196,10 @@ if __name__=='__main__':
 			chunkEnd = min(chunkStart+chunk_iter,currChromLen)
 
 			while chunkStart < currChromLen-1:
-				print("working on contig:%s:%d:%d..."%(chr,chunkStart,chunkEnd))
+				print "working on contig:%s:%d:%d..."%(chr,chunkStart,chunkEnd)
 				curr_working_contig = np.zeros((chunkEnd-chunkStart,3,2))		
-				for lib,gc_correction_vects in passing_libs.items():
-					print("getting depths (and starts!)...")
+				for lib,gc_correction_vects in passing_libs.iteritems():
+					print "getting depths (and starts!)..."
 
 					lib_wssd_chr=chr
 					if o.alt_input_contigs != None:
@@ -207,7 +207,7 @@ if __name__=='__main__':
 
 					currlib_depths_and_starts = lib_wssds[lib].depth["wssd"][lib_wssd_chr][chunkStart:chunkEnd,:,:]
 					for k in range(2): #for dim 0 and 1
-						print("getting gc correction lib %s ..."%( lib))
+						print "getting gc correction lib %s ..."%( lib)
 						#HARD CODED gc_correction_vects[0] because we use the gc correction from the 
 						#
 						adjustment = gc_correction_vects[0].take(GC[gc_grp][chr][chunkStart:chunkEnd])
@@ -221,11 +221,11 @@ if __name__=='__main__':
 							else: #DEFAULT
 								curr_working_contig[:,i,k]+=currlib_depths_and_starts[:,i,k]*adjustment
 								#curr_working_contig[:,i,k]+=currlib_depths_and_starts[:,i,k]*adjustment*w
-						print("sum sanity check: ", sum_sanity_check)					
+						print "sum sanity check: ", sum_sanity_check					
 				
-				print("curr_working_contig shape " ,curr_working_contig.shape)
+				print "curr_working_contig shape " ,curr_working_contig.shape
 				#np.clip(curr_working_contig,0,1e30,curr_working_contig)
-				print("curr_working_contig shape " ,curr_working_contig.shape)
+				print "curr_working_contig shape " ,curr_working_contig.shape
 				adjusted_wssd_track.depth[grpName][chr][chunkStart:chunkEnd,:,:] = curr_working_contig
 				
 				chunkStart+=chunk_iter

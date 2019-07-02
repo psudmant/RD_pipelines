@@ -19,7 +19,7 @@ INPUT_DTS_DIR=config["input_dts_dir"]
 INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_DTS_DIR)]
 #INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
 
-shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller; ".format(SNAKEMAKE_DIR))
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
 
 localrules: all
 

@@ -36,7 +36,7 @@ class output:
                         10 :"255,0,0"}
         
         s_outdata = [self.outdata[0]]
-        for i in range(1,len(self.outdata)):
+        for i in xrange(1,len(self.outdata)):
             contig, start, end, cp = self.outdata[i]
             if contig == s_outdata[-1][0] and cp == s_outdata[-1][3]:
                 s_outdata[-1][2] = end
@@ -44,12 +44,12 @@ class output:
                 s_outdata.append(self.outdata[i])
         
         fn_tmp = tempfile.NamedTemporaryFile(mode='w', dir="/tmp").name
-        print(fn_tmp)
+        print fn_tmp
         with open(fn_out, 'w') as F:
             for l in s_outdata:
                 contig, start, end, cp = l
                 rnd_cp = min(int(round(cp)), 10)
-                print("\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],str(cp)]), file=F) 
+                print >>F, "\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],str(cp)]) 
             
 if __name__=="__main__":
         
@@ -78,13 +78,13 @@ if __name__=="__main__":
     
     c_out = output(o.contig_prefix, o.output_contigs) 
     for contig in wnd_cp.contigs:   
-        print(contig, file=stderr)
+        print  >>stderr, contig
         
         cps = wnd_cp.get_cps_by_chr(contig)
         wnd_starts, wnd_ends = wnd_cp.get_wnds_by_chr(contig)
          
         prev_start = 0
-        for i in range(0, cps.shape[0]-1):
+        for i in xrange(0, cps.shape[0]-1):
             s, e = wnd_starts[i], wnd_ends[i]
             mid = (s+e)/2
 
