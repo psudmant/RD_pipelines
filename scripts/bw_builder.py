@@ -49,7 +49,7 @@ class output:
             for l in s_outdata:
                 contig, start, end, cp = l
                 rnd_cp = min(int(round(cp)), 10)
-                print("\t".join(["%s%s"%(self.contig_prefix,contig),str(start),str(end),indiv,"0","+","0","0",color_hash[rnd_cp],str(cp)]), file=F) 
+                print("\t".join(["%s%s"%(self.contig_prefix,contig),str(int(start)),str(int(end)),indiv,"0","+","0","0",color_hash[rnd_cp],str(cp)]), file=F) 
             
 if __name__=="__main__":
         

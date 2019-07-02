@@ -8,7 +8,6 @@ import time
 
 import numpy as np
 import tables
-import pygr.Data
 
 from wssd_common import *
 from wssd_pw_common import *
@@ -193,11 +192,11 @@ if __name__=='__main__':
 			chunk_iter = 5e7
 			currChromLen = adjusted_wssd_track.mContigNameLen[chr]
 			chunkStart = 0
-			chunkEnd = min(chunkStart+chunk_iter,currChromLen)
+			chunkEnd = min(int(chunkStart+chunk_iter),int(currChromLen))
 
 			while chunkStart < currChromLen-1:
 				print("working on contig:%s:%d:%d..."%(chr,chunkStart,chunkEnd))
-				curr_working_contig = np.zeros((chunkEnd-chunkStart,3,2))		
+				curr_working_contig = np.zeros((int(chunkEnd-chunkStart),3,2))		
 				for lib,gc_correction_vects in passing_libs.items():
 					print("getting depths (and starts!)...")
 

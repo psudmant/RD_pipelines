@@ -7,6 +7,9 @@ import kg_file_handling as kgf
 #from scipy import *
 from optparse import OptionParser
 
+sys.path.append('/net/eichler/vol27/projects/morbidity_map/nobackups/02.ILLUMINA/06.dCGH/test_miniconda/mrssnake_mapped/rd_pipelines/wssd_sunk')
+sys.path.append('/net/eichler/vol27/projects/morbidity_map/nobackups/02.ILLUMINA/06.dCGH/test_miniconda/mrssnake_mapped/rd_pipelines/ssf_DTS_caller')
+
 from wssd_common import *
 from wssd_pw_common import *
 

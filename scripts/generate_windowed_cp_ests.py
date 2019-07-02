@@ -1,11 +1,10 @@
 import os,sys
 import os.path
-import pickle
 import pickle 
 from optparse import OptionParser
 from wssd_common_v2 import *
 from wssd_pw_common import *
-from  ml_get_cpn import *
+from ml_get_cpn import *
 from sys import stderr
 
 if __name__=='__main__':
@@ -25,7 +24,6 @@ if __name__=='__main__':
     
     in_genome=open(o.in_genome,"r").readline() 
     (in_genome,in_wssd_dir,in_bac_dir,in_chunk_dir,in_primary_analysis_dir) = in_genome.split()
-    
     mask = DenseTrackSet (o.fn_contig_file,
                                                 o.fn_mask,
                                                 overwrite=False,
@@ -47,7 +45,7 @@ if __name__=='__main__':
     print("input genome: %s"%in_genome, file=stderr)
     print("loading regions...", file=stderr) 
     F_region_pickle=open(o.wnd_pickle,"rb")
-    regions_chrms,regions_coords,regions_wnds = pickle.load(F_region_pickle) 
+    regions_chrms,regions_coords,regions_wnds = pickle.load(F_region_pickle, encoding='latin1') 
     print("done ", file=stderr)
 
 #read in base genome data
@@ -84,6 +82,4 @@ if __name__=='__main__':
         out_wnd_DTS['copy'][chr][curr_wnd_bin:curr_wnd_bin+l_regressions] = regressions
         #out_wnd_DTS.tbl.flush()
         curr_wnd_bin+=l_regressions
-
-
-
+        

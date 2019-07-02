@@ -59,8 +59,9 @@ class genome_data:
         print(fn_wssd)
         self.fn_wssd = fn_wssd
         print("**********")
-        mtxParams = np.array([ [float(x) for x in line.replace('\n','').strip().split()[1:]]
-                              for line in open(fn_fit_params,'r') ],'float64')
+        with open(fn_fit_params,'r') as f:
+            mtxParams = np.array([ [float(x) for x in line.replace('\n','').strip().split()[1:]]
+                              for line in f],'float64')
         cps=mtxParams[:,0]
         mus=mtxParams[:,1]
         sigs=mtxParams[:,2]
@@ -96,7 +97,11 @@ class genome_data:
         mask_chr = mask_chr==None and chr or mask_chr
         #IF IT's A SUNK MASK -> different 
         if self.sunk_based:
-            masked_region = mask['isntSunkOrIsMasked'][mask_chr][start:end]
+            masked_contig = mask['isntSunkOrIsMasked'][mask_chr]
+            if masked_contig.ndim == 2:
+                masked_region = mask['isntSunkOrIsMasked'][mask_chr][start:end,:]
+            elif masked_contig.ndim == 1:
+                masked_region = mask['isntSunkOrIsMasked'][mask_chr][start:end]
         else:
             masked_region = mask['mask'][mask_chr][start:end,:].sum(1)>0
 
