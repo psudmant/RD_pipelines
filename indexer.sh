@@ -1,6 +1,5 @@
 #!/bin/env bash
 
-test
 
 mkdir index
 path=`pwd`
