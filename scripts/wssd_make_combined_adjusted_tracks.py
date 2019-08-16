@@ -29,15 +29,6 @@ def file_exists(ls,file):
   return 0
 
 
-def in_corrupted(genome):
-	corrupted_genomes = open("/net/gs/vol1/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes/corrupted").readlines()
-	for g in corrupted_genomes:
-		g = g.rstrip()
-		if(g==genome):
-			return True
-	
-	return False
-	
 
 def get_passing_libs(bac_analysis_lib_dir,max_correction,overide_thresh):
 	

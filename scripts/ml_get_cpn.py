@@ -588,7 +588,7 @@ if __name__=='__main__':
     
     in_genomes = open(o.fn_in_genomes,"r").readlines()
     in_locations = open(o.fn_in_locations,"r").readlines()
-    primary_analysis_dir = "/net/gs/vol1/home/psudmant/ebod/psudmant/primary_analysis"    
+    primary_analysis_dir = "./primary_analysis"    
 
     for in_genome in in_genomes:
         (genome,fn_wssd_dir,fn_bac_dir) = in_genome.split()

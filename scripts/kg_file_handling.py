@@ -80,20 +80,6 @@ class genome:
     def addlibrary(self,library):
         self.libraries.append(library)
 
-################
-###############
-#DEFUNCT - Should never need to be used
-def cp_PAIRED_end_from_gozde():
-    global genomes
-    for key in genomes:
-        for lib in genomes[key].libraries:
-            if(lib.paired == "PAIRED" or lib.paired == "BOTH"):
-                if(lib.insert_size != -1):
-                    for file in lib.files:
-                        command = "mv /net/gs/vol1/home/psudmant/ebod/1000genomes/Sequences/%s/paired_libs/%s/%s/%s /net/gs/vol1/home/psudmant/ebod/1000genomes/Pilot1/%s" % (pilot_dir,str(lib.insert_size), lib.name, file.name, key)
-                        #print command
-                        #os.system(command)
-
 
 def run_file_check(md5sum=0):
     
@@ -496,7 +482,6 @@ class kg_file_handler:
         for key in self.genomes:
             command = "mkdir  %s/%s/%s" % (self.output_dir,self.pilot_dir,key)
             print(command)
-        #command = "mkdir /net/gs/vol1/home/psudmant/ebod/1000genomes/Pilot1/" + key
             os.system(command)
 
 

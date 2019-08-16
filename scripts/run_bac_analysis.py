@@ -1141,9 +1141,6 @@ if __name__=='__main__':
     control_bacs = {}
 
     #bac_list_file = "./baccopies"
-    #mask_file = "/net/gs/vol1/home/psudmant/EEE_Lab/control_bacs/bacs_aggressivemask.ntable"
-    #mask_file = "/net/gs/vol1/home/psudmant/genomes/masking/output/control_bacs-rm-100.0wm.mask_table"
-    fnbac_contigLengths = "/net/gs/vol1/home/psudmant/EEE_Lab/1000G/1000genomesScripts/kitz_wssd/wssd_contigLengths_BACS.txt"
 
     opts = OptionParser()
     opts.add_option('','--sex_index',dest='fn_sex_pop_index')
@@ -1163,6 +1160,7 @@ if __name__=='__main__':
     opts.add_option('','--hg_contig',dest='fn_hg_contigs')
     opts.add_option('','--hg_gc_content',dest='fn_hg_gc_content_table')
     opts.add_option('','--genome',dest='genome')
+    opts.add_option('','--fnbac_contigLengths',dest='fnbac_contigLengths')
 
     #opts.add_option('','--bac_mask_file',dest='fn_bac_mask')
     #opts.add_option('','--bac_contig',dest='fn_bac_contigs')
