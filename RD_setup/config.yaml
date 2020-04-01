@@ -32,39 +32,48 @@ REF_FILES:
         GAP_ANNOTATIONS: /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS
 
     hg38:
-        MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36
-        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
-        CONTIGS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
-        GC_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
-        WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/DTS_windows/hg38_slide/500_bp_windows.pkl
-        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
-        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/control_location_hg38
-        GENOME: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
-        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/DGV_variation_hg38.annotation.DTS
-        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
-        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
+        MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_noWM_pad36
+        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_sunk_mask_track_pa
+d36_e0.dts
+        CONTIGS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+.fai
+        GC_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_gc_w200.GC_content
+        WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_slide/500_bp_
+windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/DTS_windows/hg38_sunk_sli
+de/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/control_location_hg38
+        GENOME: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/DGV_variation_hg38.anno
+tation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomicSu
+perDups_hg38.annotation.DTS
+        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomic_gaps_hg38.annot
+ation.DTS
     hg38_canonical:
-        MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36
-        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
-        CONTIGS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
-        GC_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
-        WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl
-        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_canonical/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
-        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/control_location_hg38
-        GENOME: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
-        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/DGV_variation_hg38.annotation.DTS
-        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
-        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
+        MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_noWM_pad36
+        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_sunk_mask_track_pa
+d36_e0.dts
+        CONTIGS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+.fai
+        GC_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_gc_w200.GC_content
+        WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_canonical/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/control_location_hg38
+        GENOME: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/DGV_variation_hg38.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
+        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
     hg38_noM:
-        MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36
-        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
-        CONTIGS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
-        GC_TRACK: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/read_depth/illumina/hg38_gc_w200.GC_content
-        WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/DTS_windows/hg38_slide/500_bp_windows.pkl
-        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
-        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/control_location_hg38
-        GENOME: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
-        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/DGV_variation_hg38.annotation.DTS
-        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
-        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
+        MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_noWM_pad36
+        SUNK_MASK_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/hg38_sunk_mask_track_pad36_e0.dts
+        CONTIGS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_noM/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa.fai
+        GC_TRACK: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_noM/read_depth/illumina/hg38_gc_w200.GC_content
+        WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_noM/DTS_windows/hg38_slide/500_bp_windows.pkl
+        SUNK_WNDS_PKL: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_noM/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+        CONTROL_LOCATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/control_location_hg38
+        GENOME: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/indexes/hg38_noM/mrsfastULTRA/hg38.rmsk_and_trf.canonical.fa
+        DGV_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/DGV_variation_hg38.annotation.DTS
+        GENOMIC_SUPER_DUP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomicSuperDups_hg38.annotation.DTS
+        GAP_ANNOTATIONS: /net/eichler/vol26/eee_shared/nobackups/archive/assemblies/hg38/read_depth/illumina/genomic_gaps_hg38.annotation.DTS
 

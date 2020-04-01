@@ -9,7 +9,7 @@ shell.prefix("set -eo pipefail; source {0}/../env.conf; export PYTHONPATH=$PYTHO
 # Load configuration.
 
 if config == {}:
-    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+    configfile: "RD_config.yaml"
 
 if not os.path.exists("log"):
     os.makedirs("log")
