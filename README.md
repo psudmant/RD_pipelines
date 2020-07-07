@@ -10,7 +10,7 @@ pipelines implemented for various read-depth CNV calling tasks, including:
 
 Quick setup:
 ```
-git clone https://github.com/eichlerlab/RD_pipelines --recursive
+git clone https://github.com/eichlerlab/RD_pipelines.git --recursive
 cd RD_pipelines
 . env.conf
 make
