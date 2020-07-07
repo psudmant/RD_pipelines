@@ -21,7 +21,7 @@ WINDOW_SIZE=500
 MAX_MERGE_DIF=0.27
 
 if config == {}:
-    configfile: "dCGH_config.yaml" % SNAKEMAKE_DIR
+    configfile: "dCGH_config.yaml"
 
 shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
 
