@@ -28,7 +28,7 @@ hg38:
     gc_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/gc_content_1kbp_windows.bed.gz
     superdups: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/genomicSuperDup.tab.gz
     ref_fasta: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wssd/ref/hg38_canonical/hg38.fa
-    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
+    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/500_bp_slide_GC_hg38
 
 hg38_noM:
     wnd_contigs: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/500_bp_windows.wssd.pkl.contigs
@@ -39,5 +39,5 @@ hg38_noM:
     segdup_gaps: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/segDups_Gaps_merged_hg38.bed
     mask_bed: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36.bed
     superdups: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/genomicSuperDup.tab.gz
-    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
+    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/500_bp_slide_GC_hg38
     ref_fasta: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wssd/ref/hg38_noM/hg38_noM.fa
