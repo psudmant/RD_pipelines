@@ -48,13 +48,14 @@ rule pick_ref:
 		ref_female='reference_females.txt'
 
 	run: 
-		sex_info = pd.read_csv(input.sexinfo, sep="\t", dtype=object, header=None, names=['file', 'sex', 'group'])
-		gc_summary = pd.read_csv(input.gcsummary, sep="\s+", dtype=object, header=None, names=['file', 'b', 'c', 'cn2', 'e'])
+		sex_info = pd.read_csv(input.sexinfo, sep="\s+", header=None, names=['file', 'sex', 'group'])
+		gc_summary = pd.read_csv(input.gcsummary, sep="\s+", header=None, names=['file', 'b', 'c', 'cn2', 'e'])
 		merged_df = gc_summary.merge(sex_info, how='inner', on='file')
+		print(merged_df)
 		males = merged_df[merged_df['sex'] == 'M'].sort_values(by='cn2', ascending=False)
-		males = males[males['group'].str.lower().contains('fa')]
+		males = males[males['group'].str.contains('fa')]
 		females = merged_df[merged_df['sex'] == 'F'].sort_values(by='cn2', ascending=False)
-		females = females[females['group'].str.lower().contains('mo')]
+		females = females[females['group'].str.contains('mo')]
 		try:
 			reference_males = males.iloc[range(10)]
 		except:
