@@ -39,5 +39,5 @@ hg38_noM:
     segdup_gaps: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/segDups_Gaps_merged_hg38.bed
     mask_bed: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36.bed
     superdups: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/genomicSuperDup.tab.gz
-    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/read_depth/illumina/hg38_gc_w200.GC_content
+    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
     ref_fasta: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wssd/ref/hg38_noM/hg38_noM.fa
