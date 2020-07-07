@@ -21,7 +21,7 @@ WINDOW_SIZE=500
 MAX_MERGE_DIF=0.27
 
 if config == {}:
-    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+    configfile: "dCGH_config.yaml" % SNAKEMAKE_DIR
 
 shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
 
@@ -38,6 +38,8 @@ GGLOB_DIR = config["gglob_dir"]
 
 WND_CONTIGS = config[REFERENCE]["wnd_contigs"]
 GAPS = config[REFERENCE]["gaps"]
+REF_FA = config[REFERENCE]["ref_fasta"]
+GC_DTS = config[REFERENCE]["gc_dts"]
 
 """
 Begin TEST_CALL_FILTER section.
@@ -183,7 +185,7 @@ rule make_final_vcf:
     params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
     benchmark: "benchmarks_dCGH/make_final_vcf.txt"
     shell:
-        "module load vcflib/20160331; vcfcombine {input} | vcfstreamsort > {output}"
+        "vcfcombine {input} | vcfstreamsort > {output}"
 
 rule combine_by_chr:
     input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
@@ -235,7 +237,7 @@ rule genotype_refine_breakpoints_by_chr_subset:
             plot_out_dir="final_calls/by_chr/{contig}",
             subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
     benchmark: "benchmarks_dCGH/genotype_refine.{contig}.{k}.txt"
-    shell: "python {SSF_DIR}/genotype_refined_call_sets.py --call_table {input} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
+    shell: "python {SSF_DIR}/genotype_refined_call_sets.py --call_table {input} --DTS_contigs {WND_CONTIGS} --genome_fa {REF_FA} --GC_DTS {GC_DTS} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
 
 rule bgzip_all_refined_calls:       
     input: "all_resolved_calls/all_resolved_calls"

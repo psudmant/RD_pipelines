@@ -1,0 +1,43 @@
+---
+dts_dir: DTS_files/500_bp_slide
+dts_ref_dir: DTS_ref_files/500_bp_slide
+gglob_dir: gglob
+
+p_cutoff: 0.0001
+cutoff_scale: 3000
+wnd_size: 500
+max_merge_dif: 0.27
+
+reference: hg38_noM
+
+hg19:
+    wnd_contigs: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs
+    gaps: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz
+    dup_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
+    gene_tabix: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz
+    gc_tabix: /net/eichler/vol7/home/psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz
+    superdups: /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz
+    segdup_gaps: /net/eichler/vol3/home/bcoe/SimonsGenomes/SegDups_Gaps_Merged_hg19.bed
+    mask_bed: /net/eichler/vol3/home/bcoe/SimonsGenomes/HG19-noWM-pad36.bed
+
+hg38:
+    wnd_contigs: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_canonical/DTS_windows/hg38_slide/500_bp_windows.pkl.contigs
+    gaps: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/gaps.bed.gz
+    dup_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/wgac_merged.tab.gz
+    gene_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/genes/refGene.txt.sort.gz
+    gc_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/gc_content_1kbp_windows.bed.gz
+    superdups: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/genomicSuperDup.tab.gz
+    ref_fasta: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wssd/ref/hg38_canonical/hg38.fa
+    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_gc_w200.GC_content
+
+hg38_noM:
+    wnd_contigs: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/500_bp_windows.wssd.pkl.contigs
+    gaps: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/gaps.bed.gz
+    dup_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/wgac_merged.tab.gz
+    gene_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/genes/refGene.txt.sort.gz
+    gc_tabix: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/gc_content_1kbp_windows.bed.gz
+    segdup_gaps: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/segDups_Gaps_merged_hg38.bed
+    mask_bed: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/read_depth/illumina/hg38_noWM_pad36.bed
+    superdups: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wgac/genomicSuperDup.tab.gz
+    gc_dts: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/indexes/hg38_noM/read_depth/illumina/hg38_gc_w200.GC_content
+    ref_fasta: /net/eichler/vol26/eee_shared/assemblies/hg38/legacy/wssd/ref/hg38_noM/hg38_noM.fa
