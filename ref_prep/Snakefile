@@ -1,0 +1,224 @@
+import os
+
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
+
+shell.executable("/bin/bash")
+shell.prefix("set -eo pipefail; ")
+
+configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+REF_NAME = config["ref_name"]
+
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+localrules: all, get_control_locations, get_rd_setup_text
+
+rule all:
+    input: "ref_tracks/%s.noWM_pad36" % REF_NAME,
+           "ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
+           "ref_tracks/%s.gc_w200.GC_content" % REF_NAME,
+           "ref_tracks/500_bp_windows.pkl",
+           "ref_tracks/500_bp_windows.sunk.pkl",
+           "ref_tracks/%s_500_bp_slide_GC" % REF_NAME,
+           "ref_tracks/gc_content_1kbp_windows.bed.gz",
+           expand("ref_tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+
+rule get_control_locations:
+    input: "ref_tracks/control_locations.txt"
+
+rule get_rd_setup_text:
+    input: mask="ref_tracks/%s.noWM_pad36" % REF_NAME,
+           sunk_mask="ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME,
+           gc="ref_tracks/%s.gc_w200.GC_content" % REF_NAME,
+           control_locs="ref_tracks/control_locations.txt",
+           wnds="ref_tracks/500_bp_windows.pkl",
+           sunk_wnds="ref_tracks/500_bp_windows.sunk.pkl",
+           misc_dts=expand("ref_tracks/%s.{type}.DTS" % REF_NAME, type=["dgv", "segdups", "gaps"])
+    output: "rd_setup.txt"
+    run:
+        import os
+        keys = {"MASK_TRACK": input.mask,
+                "SUNK_MASK_TRACK": input.sunk_mask,
+                "CONTIGS": config["masked_contigs"],
+                "GC_TRACK": input.gc,
+                "WNDS_PKL": input.wnds,
+                "SUNK_WNDS_PKL": input.sunk_wnds,
+                "CONTROL_LOCATIONS": input.control_locs,
+                "GENOME": config["masked_ref"],
+                "DGV_ANNOTATIONS": input.misc_dts[0],
+                "GENOMIC_SUPER_DUP_ANNOTATIONS": input.misc_dts[1],
+                "GAP_ANNOTATIONS": input.misc_dts[2]
+                }
+        with open(output[0], "w") as outfile:
+            print("    {}:".format(REF_NAME), file=outfile)
+            for key, value in keys.items():
+                path = os.path.abspath(value)
+                print("        {}: {}".format(key, path), file=outfile)
+
+rule liftover:
+    input: control_locs=config["input_control_locs"], chain=config["chain_file"]
+    output: "ref_tracks/control_locations.bed", "ref_tracks/control_locations.txt"
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        "liftOver {input.control_locs} {input.chain} {output[0]} ref_tracks/unmapped.control_locs.bed; "
+        "awk '{{print $4,$1,$2,$3}}' {output[0]} > {output[1]}"
+
+rule sunk_dts_windows:
+    input: contigs=config["masked_contigs"], mask="ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
+    output: "ref_tracks/500_bp_windows.sunk.pkl"
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}:$PYTHONPATH; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
+            "--contig_file {input.contigs} "
+            "--mask_file {input.mask} "
+            "--wnd_width 500 "
+            "--slide_by 100 "
+            "--sunk_based "
+            "--region_output {output}"
+
+rule wssd_dts_windows:
+    input: contigs=config["masked_contigs"], mask="ref_tracks/%s.noWM_pad36" % REF_NAME
+    output: "ref_tracks/500_bp_windows.pkl"
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/../env.conf; export PYTHONPATH={SCRIPT_DIR}; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/generate_window_files.py "
+            "--contig_file {input.contigs} "
+            "--mask_file {input.mask} "
+            "--wnd_width 500 "
+            "--slide_by 100 "
+            "--region_output {output}"
+
+rule sunk_mask:
+    input: ref=config["masked_ref"], contigs=config["masked_contigs"], sunks="kmers/unique_kmers.merged.bed"
+    output: "ref_tracks/%s.sunk_mask_track_pad36_e0.dts" % REF_NAME
+    params: sge_opts="-l mfree=20G -l h_rt=10:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/make_kitzman_sunk_mask.py "
+            "--input_fa {input.ref} "
+            "--input_RM_fa {input.ref} "
+            "--input_TRF_fa {input.ref} "
+            "--input_sunk_locs {input.sunks} "
+            "--contigs {input.contigs} "
+            "--pad 36 "
+            "--fn_sunkmask_out {output}"
+
+rule merge_kmer_bed:
+    input: "kmers/unique_kmers.bed"
+    output: "kmers/unique_kmers.merged.bed"
+    params: sge_opts="-l h_rt=10:0:0"
+    run:
+        with open(input[0], "r") as infile, \
+             open(output[0], "w") as outfile:
+            block_chr = None
+            block_start = None
+            block_end = None
+
+            for line in infile:
+                chr, start, end, count, score, strand = line.rstrip().split()
+                start, end = int(start), int(end)
+                if block_chr is None:
+                    block_chr, block_start, block_end = chr, start, start + 1
+                elif chr != block_chr:
+                    print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    block_chr, block_start, block_end = chr, start, start + 1
+                elif start > block_end:
+                    print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    block_start, block_end = start, start + 1
+                else:
+                    block_end = start + 1
+            print(block_chr, block_start, block_end, sep="\t", file=outfile)
+                    
+rule kmer_bed:
+    input: "kmers/unique_kmers.bam"
+    output: "kmers/unique_kmers.bed"
+    params: sge_opts="-l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "bedtools bamtobed -i {input} > {output}"
+
+rule map_kmers:
+    input: ref=config["masked_ref"], kmers="kmers/unique_kmers.fasta", index=config["masked_ref"]+".index"
+    output: "kmers/unique_kmers.bam"
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0 -pe serial 4"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "mrsfast --search {input.ref} -n 0 -e 0 --seq {input.kmers} -o $TMPDIR/mappings.sam --disable-nohit --threads 4 --mem 8; "
+        "samtools sort -@ 4 -m 2G -T $TMPDIR/tmp.mappings -o {output} $TMPDIR/mappings.sam"
+
+rule jellyfish:
+    input: config["unmasked_ref"]
+    output: "kmers/unique_kmers.fasta", "kmers/mer_counts.jf"
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0,gpfsstate=0,data_scratch_ssd_disk_free=20G -pe serial 8"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "jellyfish count -m 30 -s 3500M -t 8 -U 1 --out-counter-len 1 -o $TMPDIR/mer_counts.jf {input}; "
+        "jellyfish dump -U 1 -o {output[0]} $TMPDIR/mer_counts.jf; "
+        "rsync --bwlimit=80000 $TMPDIR/mer_counts.jf {output[1]}"
+
+rule mask_dts:
+    input: ref=config["masked_ref"], contigs=config["masked_contigs"]
+    output: "ref_tracks/%s.noWM_pad36" % REF_NAME
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/make_padded_mask_from_multiple_Nd_fastas.py "
+                  "--input_fa {input.ref} "
+                  "--input_RM_fa {input.ref} "
+                  "--input_TRF_fa {input.ref} "
+                  "--pad 36 "
+                  "--contigs {input.contigs} "
+                  "--fn_mask_out {output}"
+
+rule annotate_dts:
+    input: annotations=lambda wc: config[wc.type], contigs=config["masked_contigs"]
+    output: "ref_tracks/%s.{type}.DTS" % REF_NAME
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/build_annotation_flat_file.py "
+        "--contigLengths {input.contigs} "
+        "--input_annotations {input.annotations} "
+        "--chr:start:end_cols=0:1:2 "
+        "--outTable {output}"
+
+rule gc_dts:
+    input: pkl="ref_tracks/500_bp_windows.sunk.pkl", fasta=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "ref_tracks/%s_500_bp_slide_GC" % REF_NAME
+    params: sge_opts="-l mfree=4G,h_rt=10:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "python2 {SNAKEMAKE_DIR}/../wssd_sunk/generate_windowed_GC_ests.py --contig_file {input.contigs} "
+            "--wnd_width 500 "
+            "--wnd_slide 100 "
+            "--wnd_pickle {input.pkl} "
+            "--wnd_contig_file {input.pkl}.contigs "
+            "--fasta {input.fasta} "
+            "--fn_out {output}"
+
+rule gc_windows:
+    input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "ref_tracks/gc_content_1kbp_windows.bed.gz"
+    params: sge_opts="-l mfree=4G,h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sunk.cfg; "
+        "bedtools makewindows -g {input.contigs} -w 1000 | sort -k 1,1 -k 2,2n -k 3,3n > $TMPDIR/windows.bed; "
+        "bedtools nuc -fi {input.ref} -bed $TMPDIR/windows.bed | cut -f 1-3,5 | sed 1d | bgzip -c > {output}; "
+        "tabix {output}"
+
+rule annotate_gc:
+    input: ref=config["unmasked_ref"], contigs=config["unmasked_contigs"]
+    output: "ref_tracks/%s.gc_w200.GC_content" % REF_NAME
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    shell:
+        ". {SNAKEMAKE_DIR}/envs/env.sudmant.cfg; "
+        "python -W once {SNAKEMAKE_DIR}/scripts/wssd_build_gc_vector.py "
+        "--contigLengths {input.contigs} "
+        "--gc_width 200 "
+        "--fastq_sequence {input.ref} "
+        "--outTable {output}"

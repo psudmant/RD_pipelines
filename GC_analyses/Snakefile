@@ -1,50 +1,73 @@
 import glob
-    
-SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/"
-CONTIGS="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs"
-WND_SIZE=500
-WND_SLIDE=100
-CP2LOCI="~/genomes/annotations/hg19/cp_2_regions/HG19_cp_2_regions.1_based.gt100kb.NO_SEX_CHRMS.bed.txt.gz"
-GC_DTS="~/genomes/GC_tracks/windowed_DTS/HG19/500_bp_slide_GC"
+import os
 
-PREFIX="500_bp_"
-INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("input_DTS/500_bp_slide/*")]
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
 
-INPUT_GENOMES = INPUT_GENOMES
-#TYPES = ["wssd", "sunk"])
+if config == {}:
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+REFERENCE = config["reference"]
+CONTIGS=config["ref_files"][REFERENCE]["contigs"]
+WND_SIZE=config["wnd_size"]
+WND_SLIDE=config["wnd_slide"]
+CP2LOCI=config["ref_files"][REFERENCE]["cp2loci"]
+GC_DTS=config["ref_files"][REFERENCE]["gc_dts"]
+PREFIX=config["prefix"]
+INPUT_DTS_DIR=config["input_dts_dir"]
+
+INPUT_GENOMES = [g.split("/")[-1].replace(PREFIX,"") for g in glob.glob("%s/*" % INPUT_DTS_DIR)]
+#INPUT_GENOMES = INPUT_GENOMES[:20] + [genome for genome in INPUT_GENOMES if "AFR_KhomaniSan_SA0722_F" in genome]
+
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
+
+localrules: all
 
 rule all:
-    input: "combined_output/wssd_GC_cp.dataframe","combined_output/wssd_GC_cp.summary"
-    params: sge_opts="-l h_rss=2G -N all"
+    input: "combined_output/wssd_GC_cp.dataframe.pdf", "combined_output/wssd_GC_cp.summary.pdf"
+
+rule plot_correct_by_GC_window:
+    input: "combined_output/wssd_GC_cp.dataframe"
+    output: "combined_output/wssd_GC_cp.dataframe.pdf"
+    params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
+    shell:
+        "Rscript {SNAKEMAKE_DIR}/plot_GC.R {input} {output}"
+
+rule plot_correct_by_sample:
+    input: "combined_output/wssd_GC_cp.summary"
+    output: "combined_output/wssd_GC_cp.summary.pdf"
+    params: sge_opts = "-N plot_correct -l mfree=8G -l h_rt=00:30:00"
+    shell:
+        "Rscript {SNAKEMAKE_DIR}/plot_GC_summary.R {input} {output}"
 
 rule concat_GC_stats:
     input: fn_inputs=["indiv_GC_analysis/wssd-%s"%indiv for indiv in INPUT_GENOMES]
     output: outf="combined_output/wssd_GC_cp.dataframe", F_sum="combined_output/wssd_GC_cp.summary"
-    params: sge_opts="-l h_rss=2G -N merge_all"
+    params: sge_opts="-l mfree=2G -l h_rt=00:30:00 -N merge_all", input_prefix = "indiv_GC_analysis/wssd-"
     run:
         F = open(output.outf,'w')
         Fsum = open(output.F_sum,'w')
         F.write("indiv GC cp2 total frac_cp2 pop\n")
         for f in input.fn_inputs:
-            GC2, total = 0, 0 
-            indiv=f.split("-")[-1]
-            pop=f.split("/")[-1].split("-")[-2]
+            GC2, total = 0, 0
+            indiv=f.replace(params.input_prefix, "")
+            type=f.split("/")[-1].split("-")[0]
             for l in open(f):
-                F.write("%s %s %s\n"%(indiv, l.rstrip(),pop))
+                F.write("%s %s %s\n"%(indiv, l.rstrip(),type))
                 sl = l.split()
                 if float(sl[0])!=0.0:
                     GC2+=int(sl[1])
                     total+=int(sl[2])
 
-            Fsum.write("%s %d %d %f %s\n"%(indiv,GC2,total, float(GC2)/total, pop))
+            Fsum.write("%s %d %d %f %s\n"%(indiv,GC2,total, float(GC2)/total, type))
         Fsum.close()
         F.close()
 
 rule indiv_GC_stats:
-    input:  "input_DTS/500_bp_slide/500_bp_{indiv}"
-    params: sge_opts="-l h_rss=4G -N GC_{indiv}"
+    input:  "%s/%s{indiv}" % (INPUT_DTS_DIR, PREFIX)
+    params: sge_opts="-l mfree=4G -N GC_{indiv} -l h_rt=03:00:00"
     output: "indiv_GC_analysis/wssd-{indiv}"
-    shell:  "python {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
+    shell:  "python3 {SCRIPT_DIR}/get_gc_cp2_stats.py --out_dir ./indiv_GC_analysis --fn_DTS {input} --contigs {CONTIGS} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --fn_out wssd --cp2_loci {CP2LOCI} --gc_DTS {GC_DTS}"
 
 rule clean:
     shell: "rm -rf indiv_GC_analysis combined_output ./log; mkdir ./log"

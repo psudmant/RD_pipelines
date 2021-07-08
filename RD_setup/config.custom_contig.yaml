@@ -1,0 +1,29 @@
+---
+dataset: hgdp
+reference: hg38
+
+split_dir: index
+
+window_width: 500
+gc_width: 200
+
+hgdp:
+    sex_pop: /net/eichler/vol23/projects/human_diversity/nobackups/bnelsj/hsdg/FAM115C/rd_custom_human_contig/sex_info.partial
+nhp:
+    sex_pop: /net/eichler/vol23/projects/human_diversity/nobackups/bnelsj/CH17_nhp/sex_info
+
+custom_contig:
+    mask_track: /net/eichler/vol23/projects/human_diversity/nobackups/bnelsj/hsdg/FAM115C/rd_custom_human_contig/FAM115C_LOC154761_final_noWM_pad36.dts
+    contig_lengths: /net/eichler/vol23/projects/human_diversity/nobackups/bnelsj/hsdg/FAM115C/rd_custom_human_contig/FAM115C_LOC154761_final_lengths.tab
+    gc_content: /net/eichler/vol23/projects/human_diversity/nobackups/bnelsj/hsdg/FAM115C/rd_custom_human_contig/read_depth/FAM115C_LOC154761_final.GC_content
+
+hg19:
+    sunk_mask_track: /net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts
+    dts_windows: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl
+    sunk_dts_windows: /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl
+    control_locations: /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19
+hg38:
+    sunk_mask_track: /net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/hg38_sunk_mask_track_pad36_e0.dts
+    dts_windows: /net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/DTS_windows/hg38_slide/500_bp_windows.pkl
+    sunk_dts_windows: /net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/DTS_windows/hg38_sunk_slide/500_bp_windows.sunks.pkl
+    control_locations: /net/eichler/vol20/projects/jlhudd/nobackups/read_depth_hg38/results/2014-11-20-prepare_hg38_read_depth_files/control_location_hg38

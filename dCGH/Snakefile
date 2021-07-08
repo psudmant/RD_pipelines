@@ -11,23 +11,35 @@ import os
 BEGIN CONSTANTS
 """
 
-SCRIPT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/"
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
 
-DUP_TABIX="~psudmant/genomes/annotations/hg19/superdups/superdups.merged.bed.gz"
-GENE_TABIX="~psudmant/genomes/annotations/hg19/genes/refGene.txt_sorted.gz"
-GC_TABIX="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content.bed_sorted.gz"
-
-P_CUTOFF=0.0001
-
-DTS_DIR="input_DTS/500_bp_slide"
-DTS_REF_DIR=DTS_DIR
-GGLOB_DIR="gglob"
+SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../scripts"
 
 CUTOFF_SCALE=3000
 WINDOW_SIZE=500
 MAX_MERGE_DIF=0.27
-WND_CONTIGS="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl.contigs"
-GAPS="/net/eichler/vol7/home/psudmant/genomes/annotations/hg19/gaps/gap.bed.gz"
+
+if config == {}:
+    configfile: "dCGH_config.yaml"
+
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
+
+REFERENCE = config["reference"]
+DUP_TABIX = config[REFERENCE]["dup_tabix"]
+GENE_TABIX = config[REFERENCE]["gene_tabix"]
+GC_TABIX = config[REFERENCE]["gc_tabix"]
+
+P_CUTOFF = config["p_cutoff"]
+
+DTS_DIR = config["dts_dir"]
+DTS_REF_DIR = config["dts_ref_dir"]
+GGLOB_DIR = config["gglob_dir"]
+
+WND_CONTIGS = config[REFERENCE]["wnd_contigs"]
+GAPS = config[REFERENCE]["gaps"]
+REF_FA = config[REFERENCE]["ref_fasta"]
+GC_DTS = config[REFERENCE]["gc_dts"]
 
 """
 Begin TEST_CALL_FILTER section.
@@ -46,7 +58,8 @@ if TEST_CALL_FILTER:
     PLOT_MODE="--do_plot"
     #PLOT_MODE=""
 else:
-    CONTIGS=["chr%d" % d for d in range(1,23)]
+    CONTIGS=["chr{}".format(d) for d in range(1,23)]
+    #CONTIGS=["chrX"] # Use this for calling on chrX, but run females and males separately
     PLOT_MODE=""
 
 """End TEST_CALL_FILTER section"""
@@ -55,17 +68,10 @@ DTS_PREFIX="500_bp_"
 
 samples=[s.split("/")[-1].replace(DTS_PREFIX,"") for s in glob.glob("%s/*"%DTS_DIR)]
 
-bad_GC = ["Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla-Banjo","Gorilla_gorilla_gorilla-Coco","Gorilla_beringei_beringei-Turimaso"] 
-samples = list(set(samples)-set(bad_GC))
-
-#print("\n".join(sorted(samples)))
-#print(len(samples))
-
 N_SUBSETS=100
 SUBSETS=range(N_SUBSETS)
 
-#references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
-references = samples
+references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
 
 EXCLUDE=[]
 
@@ -78,36 +84,114 @@ END CONSTANTS
 """
 LOAD MODULES, SET PYTHONPATH, AND CREATE INITIAL DIRECTORIES
 """
-INIT_MODULES="module load python/2.7.2 numpy/1.6.1 scipy/0.10.0 hdf5/1.8.8 pytables/2.3.1_hdf5-1.8.8 networkx/1.6 fastahack/0.1 fastahack-python/0.1 tabix/0.2.6;"
-os.system("export PYTHONPATH=$PYTHONPATH:/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code:/net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller;")
 
 DIRS_TO_MAKE = ["log", "plot"]
 
-os.system("mkdir -p %s" % ' '.join(DIRS_TO_MAKE))
+for folder in DIRS_TO_MAKE:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
 datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
 
+localrules: all, clean_call_filter_test, all_indiv_merge_trim, run_dCGH, run_gzip
+
 rule all:
-    input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes"
-    params: sge_opts="-l mfree=2G -N clustering_all"
+    input: "final_calls/final_calls.bed",
+           "final_calls/final_genotypes",
+           "beds_resolved_calls/all.bed",
+           "final_calls/analysis_callsets/bi_allelic_genotypes",
+           "final_calls/final_calls.vcf",
+           "final_calls/final_calls.DEL.tab",
+           "final_calls/final_calls.DUP.tab",
+           "final_calls/final_calls.mCNV.tab"
+
+rule all_indiv_merge_trim:
+    input: expand("merge_trim/{indiv}.tab", indiv=samples)
+
+rule indiv_merge_trim:
+    input: "all_resolved_calls/all_resolved_calls.gz"
+    output: "merge_trim/{indiv}.tab"
+    params: sd_gap=config[REFERENCE]["segdup_gaps"], mask_bed=config[REFERENCE]["mask_bed"], dts_prefix=DTS_DIR+"/"+DTS_PREFIX
+    shell:
+        "module purge; "
+        "module load modules modules-init modules-gs/prod modules-eichler/prod anaconda/201710 R/3.0.0; "
+        "Rscript {SCRIPT_DIR}/dCGH_AllResolvedCallsFilter_MergeAndTrim_Individual.R {wildcards.indiv} {params.sd_gap} {params.mask_bed} {input} {params.dts_prefix} {output}"
+
+rule plot_call_size_distribution:
+    input: "final_calls/final_calls.bed"
+    output: "call_size.hist.gt100kbp.pdf", "call_size.hist.lt100kbp.pdf"
+    params: sge_opts="-l h_rt=0:5:00"
+    run:
+        import matplotlib as mpl
+        mpl.use("Agg")
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        import seaborn as sns
+
+        dat = pd.read_table(input[0], header=None)
+        dat.columns = ["chr", "start", "end"]
+        dat["Call size"] = dat.end - dat.start
+        sns.distplot(dat["Call size"][dat["Call size"] >= 100000], bins=100, kde=False, axlabel="Call size (>100 kbp)")
+        plt.savefig(output[0])
+        plt.clf()
+        sns.distplot(dat["Call size"][dat["Call size"] < 100000], bins=100, kde=False, axlabel="Call size (<100 kbp)")
+        plt.savefig(output[1])
+
+rule split_calls_by_type:
+    input: "final_calls/final_genotypes"
+    output: "final_calls/final_calls.DEL.tab", "final_calls/final_calls.DUP.tab", "final_calls/final_calls.mCNV.tab"
+    params: sge_opts="-l mfree=8G"
+    run:
+        dels = open(output[0], "w")
+        dups = open(output[1], "w")
+        mcnvs = open(output[2], "w")
+
+        with open(input[0], "r") as infile:
+            for i, line in enumerate(infile):
+                if i == 0:
+                    nsamples = 0
+                    dels.write(line)
+                    dups.write(line)
+                    mcnvs.write(line)
+                    nsamples = len(line.rstrip().split()) - 3
+                    continue
+                cps = list(map(int, line.rstrip().split()[3:]))
+                if all([x in [0, 1, 2, -1] for x in cps]) and cps.count(-1) < 0.1 * nsamples:
+                    dels.write(line)
+                elif all([x in [2, 3, 4, -1] for x in cps]) and cps.count(-1) < 0.1 * nsamples:
+                    dups.write(line)
+                else:
+                    mcnvs.write(line)
+        dels.close()
+        dups.close()
+        mcnvs.close()
 
 rule export_callset:
     input: "final_calls/final_calls.bed","final_calls/final_genotypes", "beds_resolved_calls/all.bed","final_calls/analysis_callsets/bi_allelic_genotypes", "final_calls/final_calls.vcf.gz", "final_calls/final_calls.filter_data"    
     output: "exported_callsets/%s/final_calls.bed"%datestr
-    params: outdir="exported_callsets/%s"%(datestr)
+    params: outdir="exported_callsets/%s"%(datestr), sge_opts="-l h_rt=0:30:00"
     shell: "cp {input} {params.outdir}"
-
 
 rule make_table_of_simple_genotypes:
     input: "final_calls/final_genotypes"
     output: "final_calls/analysis_callsets/bi_allelic_genotypes"
-    params:  sge_opts="-l mfree=2G -N combine_contigs", exclude=":".join(EXCLUDE)
-    shell: "{INIT_MODULES} python ~psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
+    params:  sge_opts="-l mfree=2G -N combine_contigs -l h_rt=1:00:00", exclude=":".join(EXCLUDE)
+    benchmark: "benchmarks_dCGH/get_biallelic_dels.txt"
+    shell: "python {SSF_DIR}/filter_to_simple_gts.py --fn_gts {input} --fn_out {output} --exclude params.exclude"
+
+rule make_final_vcf:
+    input: expand("final_calls/by_chr/{contig}/{k}.vcf",contig=CONTIGS, k=SUBSETS)
+    output: "final_calls/final_calls.vcf"
+    params: sge_opts="-l mfree=4G -l h_rt=1:0:0"
+    benchmark: "benchmarks_dCGH/make_final_vcf.txt"
+    shell:
+        "vcfcombine {input} | vcfstreamsort > {output}"
 
 rule combine_by_chr:
     input: expand("final_calls/by_chr/{contig}/{k}.genotypes",contig=CONTIGS, k=SUBSETS)
     output: "final_calls/final_genotypes", "final_calls/final_calls.bed","final_calls/final_calls.filter_data"  
-    params:  sge_opts="-l mfree=2G -N combine_contigs"
+    params:  sge_opts="-l mfree=2G -N combine_contigs -l h_rt=0:30:00"
+    benchmark: "benchmarks_dCGH/combine_by_chr.txt"
     run:
         FOUT_gts = open(output[0], 'w')
         FOUT_bed = open(output[1], 'w')
@@ -140,31 +224,33 @@ rule combine_by_chr:
         FOUT_gts.close()
 
 rule clean_call_filter_test:
-    input: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
-    params: contig = '{contig}'
+    input: expand("final_calls/by_chr/{contig}/{k}.genotypes", contig=CONTIGS, k=SUBSETS, ext=["genotypes", "bed", "vcf"])
+    params: contig = '{contig}', sge_opts="-l h_rt=1:00"
     shell: "rm -rf final_calls/by_chr/{params.contig}/*"
 
 rule genotype_refine_breakpoints_by_chr_subset:
     input: "all_resolved_calls/all_resolved_calls.gz"
     output: "final_calls/by_chr/{contig}/{k}.genotypes", "final_calls/by_chr/{contig}/{k}.bed", "final_calls/by_chr/{contig}/{k}.vcf"
     params: contig="{contig}", 
-            sge_opts="-l mfree=10G -N {contig}_{k}_genotyping", 
+            sge_opts="-l mfree=20G -N {contig}_{k}_genotyping -l h_rt=5:00:00", 
             curr_n="{k}", 
             plot_out_dir="final_calls/by_chr/{contig}",
             subset_gglob_indivs=":".join([s.split("/")[-1] for s in samples])
-    shell: "{INIT_MODULES} python {SCRIPT_DIR}/genotype_refined_call_sets.py --call_table {input} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
-import shutil
+    benchmark: "benchmarks_dCGH/genotype_refine.{contig}.{k}.txt"
+    shell: "python {SSF_DIR}/genotype_refined_call_sets.py --call_table {input} --DTS_contigs {WND_CONTIGS} --genome_fa {REF_FA} --GC_DTS {GC_DTS} --dup_tabix {DUP_TABIX} --genotype_output {output[0]} --vcf_output {output[2]} --call_output {output[1]} --contig {params.contig} --visualizations_dir {params.plot_out_dir} --gglob_dir {GGLOB_DIR} --total_subsets {N_SUBSETS} --subset {params.curr_n} --subset_indivs {params.subset_gglob_indivs} {PLOT_MODE}"
 
 rule bgzip_all_refined_calls:       
     input: "all_resolved_calls/all_resolved_calls"
-    params: sge_opts="-l mfree=10G -N clustering_all"
+    params: sge_opts="-l mfree=10G -N clustering_all -l h_rt=2:00:00"
+    benchmark: "benchmarks_dCGH/bgzip_refined.txt"
     output: "all_resolved_calls/all_resolved_calls.gz"
-    shell: "{INIT_MODULES} bgzip {input}"
+    shell: "bgzip {input}"
 
 rule cat_all_refined_calls:
     input: expand("resolved_calls_per_indiv/{sample}.segs.sorted.gz" , sample=samples)
     output: "all_resolved_calls/all_resolved_calls"
-    params: sge_opts="-l mfree=6G -N merging_all"
+    params: sge_opts="-l mfree=6G -N merging_all -l h_rt=2:00:00"
+    benchmark: "benchmarks_dCGH/cat_refined.txt"
     run:
         F_out = open(output[0],'w') 
         F_out.write("chr\tstart\tend\tlog_likelihood\tindiv\tcalled_refs\n")
@@ -178,30 +264,32 @@ rule cat_all_refined_calls:
             gF.close()
         F_out.close()
             
-    #"bash {SCRIPT_DIR}/do_cat_refined_calls.sh resolved_calls_per_indiv {output}"
-
 rule bgzip_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs.sorted"
     output: "resolved_calls_per_indiv/{sample}.segs.sorted.gz", "resolved_calls_per_indiv/{sample}.segs.sorted.gz.tbi"
-    params: sge_opts="-l mfree=6G -N bgzip_{sample}"
-    shell: "{INIT_MODULES} bgzip -f {input}; tabix -f -S 1 -s 1 -b 2 -e 3 {input}.gz"
+    params: sge_opts="-l mfree=6G -N bgzip_{sample} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/bgzip_refined.{sample}.txt"
+    shell: "bgzip -f {input}; tabix -f -S 1 -s 1 -b 2 -e 3 {input}.gz"
 
 rule sort_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs", "beds_resolved_calls/all.bed"
     output: "resolved_calls_per_indiv/{sample}.segs.sorted"
-    params: sge_opts="-l mfree=6G -N sort_refined_{sample}"
+    params: sge_opts="-l mfree=6G -N sort_refined_{sample} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/sort_refined.{sample}.txt"
     shell: "cat {input[0]} | sort -k 1,1 -k 2n,2n > {output}"
 
 rule cat_indiv_refined_beds:
     input: expand("beds_resolved_calls/{sample}.bed",sample=samples)
     output: "beds_resolved_calls/all.bed"
-    params: sge_opts="-l mfree=10G -N merging_indiv_beds"
+    params: sge_opts="-l mfree=10G -N merging_indiv_beds -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/all_refined_calls.txt"
     shell: "cat {input} > {output}"
     
 rule make_bed_indiv_refined_calls:
     input: "resolved_calls_per_indiv/{sample}.segs"
     output: "beds_resolved_calls/{sample}.bed"
-    params: sge_opts="-l mfree=6G -N bed_out_{sample}",sample="{sample}"
+    params: sge_opts="-l mfree=6G -N bed_out_{sample} -l h_rt=2:00:00", sample="{sample}"
+    benchmark: "benchmarks_dCGH/indiv_refined_calls.{sample}.txt"
     run:
         Fout =open(output[0],'w')
         Fin = open(input[0], 'r')
@@ -218,14 +306,16 @@ rule make_bed_indiv_refined_calls:
 rule refine_calls:
     input: table="call_tables_merged_per_indiv/{sample}.segs.gz", test_DTS="%s/500_bp_{sample}" % DTS_DIR, ref_DTS=["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references]
     output: "resolved_calls_per_indiv/{sample}.segs","beds_all_calls/{sample}.bed"
-    params: sge_opts="-l mfree=20G -N refining_{sample}", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
-    shell: "{INIT_MODULES} python /net/eichler/vol22/projects/NCS_autism/nobackups/rd_pipeline/ssf_DTS_caller/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
+    params: sge_opts="-l mfree=20G -N refining_{sample} -l h_rt=2:00:00:00", ref_DTS=":".join(["%s/500_bp_%s"%(DTS_REF_DIR, ref) for ref in references])
+    benchmark: "benchmarks_dCGH/refine_calls.{sample}.txt"
+    shell: "python3 {SSF_DIR}/refine_calls.py --call_table {input.table} --indiv_DTS {input.test_DTS} --ref_DTS {params.ref_DTS} --out_resolved {output[0]} --out_indiv_calls_bed {output[1]} --p_cutoff {P_CUTOFF}  --segdups {DUP_TABIX} --contigs {WND_CONTIGS} --window_size {WINDOW_SIZE} --gglob_dir {GGLOB_DIR}"
 #--limit_to_chr chr20 
 
 rule merge_by_reference:
     input:  input_segs_fns=["indiv_dCGH_files/{sample}.%s.segs.gz"%(ref) for ref in references]
-    params: indiv="{sample}", sge_opts="-l mfree=6G -N merging_{sample}"
+    params: indiv="{sample}", sge_opts="-l mfree=6G -N merging_{sample} -l h_rt=1:00:00"
     output: out_fn="call_tables_merged_per_indiv/{sample}.segs.gz" 
+    benchmark: "benchmarks_dCGH/merge_dCGH_files.{sample}.txt"
     run:
         gF = gzip.open(output.out_fn, 'wb')
         gF.write(bytes("indiv_ref\tindiv_test\trank\tchr\tstart\tend\tmu\tp\tadjusted_p\twindow_size\n", 'UTF-8'))
@@ -236,21 +326,37 @@ rule merge_by_reference:
                 gF.write(bytes("%s\t%s\t%s\n"%(ref, params.indiv, l.rstrip()),'UTF-8'))
         gF.close()
 
+rule run_gzip:
+    input: expand("indiv_dCGH_files/{sample}.{reference}.segs.gz", sample=samples, reference=references)
+
 rule gzip:
     input: "indiv_dCGH_files/{sample}.{reference}.segs"
     output: "indiv_dCGH_files/{sample}.{reference}.segs.gz"
-    params: sge_opts="-l mfree=6G -N gzip_{sample}_{reference}"
+    params: sge_opts="-l mfree=6G -N gzip_{sample}_{reference} -l h_rt=1:00:00"
+    benchmark: "benchmarks_dCGH/gzip.{sample}.{reference}.txt"
     shell: "gzip -f {input}"
+
+rule run_dCGH:
+    input: expand("indiv_dCGH_files/{sample}.{reference}.segs", sample=samples, reference=references)
 
 rule dCGH:
     input: "%s/500_bp_{sample}" % DTS_DIR, "%s/500_bp_{reference}" % DTS_REF_DIR
     output: "indiv_dCGH_files/{sample}.{reference}.segs" 
-    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference}", contigs=":".join(CONTIGS), sample="{sample}", ref="{reference}"
+    params: sge_opts="-l mfree=8G -N dCGH_{sample}_{reference} -l h_rt=4:00:00",
+            contigs=":".join(CONTIGS),
+            superdups=config[config['reference']]['superdups']
+    benchmark: "benchmarks_dCGH/dCGH.{sample}.{reference}.txt"
     run:
-        if params.ref==params.sample:
-            shell("touch {output[0]};")
+        if wildcards.reference==wildcards.sample:
+            shell("touch {output[0]}")
         else:
-            shell("mkdir -p indiv_dCGH_visualizations/{params.sample}.{params.ref}; python {SCRIPT_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} --cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} --output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} --segdups {DUP_TABIX} --superdup_track /net/eichler/vol7/home/psudmant/genomes/annotations/hg19/superdups/superdups_sorted.gz --gene_tabix {GENE_TABIX} --GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{params.sample}.{params.ref} --plot_lims -2:2 ") 
+            shell("mkdir -p indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.reference}; "
+                  "python {SSF_DIR}/make_dCGH_calls.py --in_chrs {params.contigs}  --contigs {WND_CONTIGS} "
+                  "--cutoff_scale {CUTOFF_SCALE} --max_merge_dif {MAX_MERGE_DIF} --window_size {WINDOW_SIZE} "
+                  "--output {output[0]} --in_DTS {input[0]} --ref_DTS {input[1]} --gaps {GAPS} "
+                  "--segdups {DUP_TABIX} --superdup_track {params.superdups} --gene_tabix {GENE_TABIX} "
+                  "--GC_tabix {GC_TABIX} --out_viz_dir ./indiv_dCGH_visualizations/{wildcards.sample}.{wildcards.reference} "
+                  "--plot_lims -2:2 ") 
 
 #rule clean:
 #    shell: "rm -rf ./beds_all_calls ./beds_resolved_calls ./indiv_dCGH_files ./call_tables_merged_per_indiv ./all_resolved_calls ./resolved_calls_per_indiv ./log ./final_calls ./indiv_dCGH_visualizations; mkdir ./log"

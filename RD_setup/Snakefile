@@ -1,130 +1,233 @@
 import glob
 
-SEX_POP="~psudmant/EEE_Lab/1000G/analysis_files/sex_ethnicity_index/GAGP_II"
-MASK_TRACK="~psudmant/genomes/mask_tracks/HG19-noWM-pad36"
-SUNK_MASK_TRACK="/net/eichler/vol7/home/psudmant/genomes/sunk_tracks/hg19/hg19_sunk_depth_mask.dts"
-CONTIGS="~psudmant/genomes/contigs/hg19_contigs.txt"
-GC_TRACK="~psudmant/genomes/GC_tracks/hg19-gc-w200.GC_content"
-SPLIT_DIR="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/analysis_files/input_genomes_moved/hg19/GAGP/GAGP_II/split_GAGP_II/"
-WND_WIDTH=500
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+MODULE_DIR = SNAKEMAKE_DIR + "/../wssd_sunk:"+SNAKEMAKE_DIR+"/../ssf_DTS_caller"
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../wssd_sunk"
+shell.prefix("set -eo pipefail; source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
+# shell.prefix("source {SNAKEMAKE_DIR}/../env.conf; export PATH=%s:$PATH; set -eo pipefail; " % MODULE_DIR)
 
-DTS_DIR="/net/eichler/vol19/projects/human_population_sequencing/nobackups/psudmant/wnd_output_DTS/hg19/MTN_GORILLA/"
-BROWSER_TRACK_OUTDIR="/net/eichler/vol13/browserTracks/peter/whole_genome_wssd/hg19_MNT_GORILLAS"
+# Load configuration.
+
+if config == {}:
+    configfile: "RD_config.yaml"
+
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+REFERENCE=config["REFERENCE"]
+SEX_POP=config["SEX_POP"]
+SPLIT_DIR=config["SPLIT_DIR"]
+
+MASK_TRACK=config["REF_FILES"][REFERENCE]["MASK_TRACK"]
+CONTIGS=config["REF_FILES"][REFERENCE]["CONTIGS"]
+GC_TRACK=config["REF_FILES"][REFERENCE]["GC_TRACK"]
+GC_WIDTH=config["GC_WIDTH"]
+DGV_ANNOTATIONS=config["REF_FILES"][REFERENCE]["DGV_ANNOTATIONS"]
+GENOMIC_SUPER_DUP_ANNOTATIONS=config["REF_FILES"][REFERENCE]["GENOMIC_SUPER_DUP_ANNOTATIONS"]
+GAP_ANNOTATIONS=config["REF_FILES"][REFERENCE]["GAP_ANNOTATIONS"]
+CONTROL_LOCATIONS=config["REF_FILES"][REFERENCE]["CONTROL_LOCATIONS"]
+GENOME=config["REF_FILES"][REFERENCE]["GENOME"]
+WND_WIDTH=config["WND_WIDTH"]
+SUNK_MASK_TRACK=config["REF_FILES"][REFERENCE]["SUNK_MASK_TRACK"]
+
+DTS_DIR="DTS_files"
 
 WSSD_DIR="500_bp_slide"
 SUNK_DIR="500_bp_sunk_slide"
 
-WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_slide/500_bp_windows.pkl"
-SUNK_WNDS_PKL="/net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/windows/hg19_sunk_slide/500_bp_windows.sunks.pkl"
+WNDS_PKL=config["REF_FILES"][REFERENCE]["WNDS_PKL"]
+SUNK_WNDS_PKL=config["REF_FILES"][REFERENCE]["SUNK_WNDS_PKL"]
 
-genomes=["Gorilla_beringei_beringei_Imfura","Gorilla_beringei_beringei_Kaboko","Gorilla_beringei_beringei_Maisha","Gorilla_beringei_beringei_Tuck","Gorilla_beringei_beringei_Turimaso","Gorilla_beringei_beringei_Umurimo","Gorilla_beringei_beringei_Zirikana","Gorilla_beringei_graueri_Dunia","Gorilla_beringei_graueri_Itebero","Gorilla_beringei_graueri_Ntabwoba","Gorilla_beringei_graueri_Pinga","Gorilla_beringei_graueri_Serufuli","Gorilla_beringei_graueri_Tumani","Gorilla_gorilla_gorilla-9752_Suzie","Gorilla_gorilla_gorilla-9753_Kokomo","Gorilla_gorilla_gorilla-A962_Amani","Gorilla_gorilla_gorilla-B642_Akiba_Beri","Gorilla_gorilla_gorilla-B643_Choomba","Gorilla_gorilla_gorilla_Banjo","Gorilla_gorilla_gorilla_Coco","Gorilla_gorilla_gorilla-KB6039_Oko","Gorilla_gorilla_gorilla-X00108_Abe","Gorilla_gorilla_gorilla-X00109_Tzambo"]
+### g_to_index is a dictionary with samples as keys and wssd_out_file directories as values.
+### By default, the mapping pipeline will give you folders like this: mapping/{sample}/{prefix}_merged.sorted/wssd_out_file
+### If your genomes are listed in the order they were mapped, you could build g_to_index like this:
+### g_to_index = {sample: i for i, sample in enumerate(genomes)}
 
 g_to_index = {}
-for f in glob.glob("%s/*"%SPLIT_DIR):
+for f in glob.glob("%s/*" % SPLIT_DIR):
     g = open(f).readline().split()[0]
-    g_to_index[g] = f 
+    g_to_index[g] = f
+
+genomes = sorted(g_to_index.keys())
+
+# Validate SEX_POP file
+with open(SEX_POP, "r") as sex_pop:
+    for i, line in enumerate(sex_pop):
+        sn, sex, pop = line.rstrip().split()
+        if sn not in g_to_index.keys():
+            sys.exit("Line %d: %s sample not in index" % (i, sn))
+        elif sex not in ["M", "F"]:
+            sys.exit("Line %d: Sex not valid: %s (sex must be M or F and columns must be sample, sex, pop)" % (i, sex))
+
+def _get_genome_from_wildcards(wildcards):
+    return g_to_index[wildcards.genome]
+
+localrules: all
 
 rule all:
-    input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["sunk","wssd"])
-    params: sge_opts="-l mfree=6G -N final_all"
+    input: expand("tracks/{genome}_{type}.bb.trackdef", genome=genomes, type=["wssd", "sunk"])
 
-rule make_wssd_tracks: 
-    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
-    output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
-    params: sge_opts="-l mfree=6G -N {genome}_wssd_track"
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd"
-    
-rule make_sunk_tracks: 
-    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR,WND_WIDTH)
-    output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
-    params: sge_opts="-l mfree=6G -N {genome}_wssd_track"
-    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk"
+# rule all:
+#     input: expand("bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params", genome=genomes)
+#     params: sge_opts="-N final_all"
+
+rule make_bb_tracks:
+    input: "bed/{genome}_{type}.sort.bed"
+    output: "tracks/{genome}_{type}.bb", "tracks/{genome}_{type}.bb.trackdef"
+    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N {type}_track_{genome}"
+    benchmark: "benchmarks/make_{type}_tracks.{genome}.txt"
+    priority: 25
+    shell: 
+        """bedToBigBed -tab -type=bed9+1 -as={SNAKEMAKE_DIR}/track.as {input} {CONTIGS} {output[0]};
+        echo -e 'track type=bigBed name="{wildcards.genome}_{wildcards.type}" description="{wildcards.genome}_{wildcards.type}" visibility=dense itemRgb="On" bigDataUrl={output[0]}' > {output[1]}
+        """
+
+rule sort_bed:
+    input: "bed/{genome}_{type}.bed"
+    output: "bed/{genome}_{type}.sort.bed"
+    params: sge_opts="-l mfree=1G -l h_rt=1:0:0 -N sort_bed"
+    shell:
+        "sort -k 1,1 -k 2,2n {input} > {output}"
+
+rule make_wssd_bed:
+    input: "%s/500_bp_slide/%d_bp_{genome}" % (DTS_DIR, WND_WIDTH)
+    output: temp("bed/{genome}_wssd.bed")
+    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N wssd_bed_{genome}"
+    shell:
+        "python3 {SCRIPT_DIR}/bw_builder.py \
+                --out_dir bed \
+                --fn_DTS {input} \
+                --contigs {CONTIGS} \
+                --wnd_size {WND_WIDTH} \
+                --fn_out wssd \
+                --output_contigs {CONTIGS}"
+
+rule make_sunk_bed:
+    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
+    output: temp("bed/{genome}_sunk.bed")
+    params: sge_opts="-l mfree=6G -l h_rt=6:00:00 -N sunk_track_{genome}"
+    benchmark: "benchmarks/make_sunk_tracks.{genome}.txt"
+    priority: 25
+    shell: "python3 {SCRIPT_DIR}/bw_builder.py \
+                --out_dir bed \
+                --fn_DTS {input} \
+                --contigs {CONTIGS} \
+                --wnd_size {WND_WIDTH} \
+                --fn_out sunk \
+                --output_contigs {CONTIGS}"
 
 rule make_sunk_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
-    params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    params: sge_opts="-l mfree=12G -l h_rt=6:00:00 -N DTS_SUNK_{genome}", indiv="{genome}"
+    benchmark: "benchmarks/make_sunk_DTS.{DTS_DIR}.{WND_WIDTH}.{genome}.txt"
+    priority: 20
+    run:
+        genome = g_to_index[params.indiv]
+        shell("python3 -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
-                    --mask_file {MASK_TRACK} \
-                    --genome  %s  \
+                    --sunk_based \
+                    --mask_file {SUNK_MASK_TRACK} \
+                    --genome {genome} \
                     --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {SUNK_WNDS_PKL}\
                     --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+                    --wnd_width {WND_WIDTH} \
+                    --param_file \"_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim1-ed-0.per_1kb_params\"")
 
 rule make_DTS:
     input: "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
     output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
-    params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+    params: sge_opts="-l mfree=12G -l h_rt=6:00:00 -N DTS_{genome}", indiv="{genome}"
+    benchmark: "benchmarks/make_DTS.{DTS_DIR}.{WND_WIDTH}.{genome}.txt"
+    priority: 20
+    run: 
+        genome = g_to_index[params.indiv]
+        shell("python3 -W once {SCRIPT_DIR}/generate_windowed_cp_ests.py \
                     --contig_file {CONTIGS}  \
                     --mask_file {MASK_TRACK} \
-                    --genome  %s  \
+                    --genome {genome}  \
                     --out_prefix {DTS_DIR}/{WSSD_DIR}/{WND_WIDTH}_bp   \
                     --wnd_pickle {WNDS_PKL}\
                     --wnd_contig_file {WNDS_PKL}.contigs  \
-                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+                    --wnd_width {WND_WIDTH}")
 
 rule get_params:
     input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
     output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
-    params: sge_opts="-l mfree=4G -N params_{genome}", indiv="{genome}"
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
-                                    --in_bac_regions /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19  \
+    params: sge_opts="-l mfree=4G -l h_rt=6:00:00 -N params_{genome}", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/get_params.{genome}.txt"
+    priority: 15
+    shell: """python3 {SCRIPT_DIR}/analyze_control_regions.py  \
+                                    --in_bac_regions {CONTROL_LOCATIONS}  \
                                     --in_contigs {CONTIGS} \
                                     --in_mask {MASK_TRACK} \
-                                    --input_genomes %s \
+                                    --input_genomes {params.genome} \
                                     --sex_pop_index {SEX_POP} \
                                     --bac_type CALKAN-NOWM-pad36 \
                                     --wssd_file_name wssd.combined_corrected.GC3.v2 \
                                     --output_directory _filtered_libs_analysis.GC3v2-NOWM-pad36 \
                                     --edits -1:0  \
-                                    --type simple"%g_to_index[params.indiv])
+                                    --type simple"""
                                     #--only_use_cps 2  ONLY FOR NON-HUMANS
-                                    
+
 
 rule WSSD_cc:
     input:  "bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
     output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
-    params: sge_opts="-l mfree=14G -N wssd_{genome}", indiv="{genome}"
-    run: shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
+    params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=1:00:00:00 -l disk_free=20G", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/wssd_cc.{genome}.txt"
+    priority: 10
+    shell: 
+        """mkdir -p $TMPDIR/mapping/{wildcards.genome}/{wildcards.genome} $TMPDIR/{SPLIT_DIR} $TMPDIR/bac_analysis/{wildcards.genome}/{wildcards.genome} $TMPDIR/`dirname {output}`; 
+           ln -s `pwd`/{input} $TMPDIR/{input}; 
+           ln -s `pwd`/bac_analysis/{wildcards.genome}/{wildcards.genome}/cn2-gc-depth-WG-W200-dim0.txt $TMPDIR/bac_analysis/{wildcards.genome}/{wildcards.genome}/cn2-gc-depth-WG-W200-dim0.txt; 
+           ln -s `pwd`/mapping/{wildcards.genome}/{wildcards.genome}/wssd_out_file $TMPDIR/mapping/{wildcards.genome}/{wildcards.genome}/wssd_out_file; 
+           ln -s `pwd`/{SEX_POP} $TMPDIR/{SEX_POP}; 
+           pushd $TMPDIR;
+           echo -e "{wildcards.genome}\t$TMPDIR/mapping\t$TMPDIR/bac_analysis\t$TMPDIR/sequencing\t$TMPDIR/primary_analysis" > {SPLIT_DIR}/{wildcards.genome}; 
+           python3 {SCRIPT_DIR}/wssd_make_combined_adjusted_tracks.py \
                                     --contigLengths {CONTIGS} \
-                                    --gc_width 200  \
-                                    --in_genomes %s \
+                                    --gc_width {GC_WIDTH}  \
+                                    --in_genomes {params.genome} \
                                     --inGC {GC_TRACK}:GC_content \
                                     --sex_pop_index {SEX_POP} \
                                     --input_wssd_file_names wssd_out_file \
                                     --max_correction 3  \
                                     --append_to_name .GC3.v2  \
-                                    --overide_thresh .01"%g_to_index[params.indiv])
+                                    --overide_thresh .01; 
+           popd; 
+           rsync $TMPDIR/{output} {output} --bwlimit=20000"""
 
 rule BAC:
     input:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
     output:"bac_analysis/{genome}/{genome}/summary_stats_dim0.txt"
-    params: sge_opts="-l mfree=10G -N BAC_{genome}", indiv="{genome}"
-    run: shell("python ~psudmant/EEE_Lab/dist_analysis/get_read_dists/run_bac_analysis.py  \
+    params: sge_opts="-l mfree=10G -N BAC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/bac.{genome}.txt"
+    priority: 5
+    shell: """python3 {SCRIPT_DIR}/run_bac_analysis.py \
                             --sex_index {SEX_POP} \
                             --hg_mask_file {MASK_TRACK} \
                             --hg_contig {CONTIGS} \
                             --hg_gc_content {GC_TRACK} \
                             --do_dist_analysis True \
-                            --bac_list_file /net/gs/vol1/home/psudmant/genomes/control_bacs.masked/control_bacs_locations/control_location_hg19 \
-                            --input_genomes %s\
+                            --bac_list_file {CONTROL_LOCATIONS} \
+                            --input_genomes {params.genome} \
                             --input_wssd_file_names wssd_out_file \
-                            --genome HG19"%g_to_index[params.indiv])
+                            --genome {GENOME}"""
 
 rule GetGC:
     input: "mapping/{genome}/{genome}/wssd_out_file"
     output:"bac_analysis/{genome}/{genome}/cn2-gc-depth-WG-W200-dim0.txt"
-    params: sge_opts="-l mfree=6G -N GC_{genome}", indiv="{genome}"
-    run: shell("python /net/eichler/vol7/home/psudmant/EEE_Lab/1000G/1000genomesScripts/get_gc_correction/get_gc_correction.py \
+    params: sge_opts="-l mfree=6G -N GC_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
+    benchmark: "benchmarks/getgc.{genome}.txt"
+    shell: """python3 {SCRIPT_DIR}/get_gc_correction.py \
                                 --sex_pop_index {SEX_POP}  \
                                 --hg_mask_file {MASK_TRACK} \
                                 --hg_contig_file {CONTIGS} \
                                 --hg_gc_content_file {GC_TRACK} \
-                                --GC_width 200 --fn_input_genomes %s  \
-                                --fn_DGV_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/DGV/DGV_variation_hg19.annotation.DTS  \
-                                --fn_superdup_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/superdups/genomicSuperDups_hg19.annotation.DTS  \
-                                --fn_genomic_gaps_flatfile /net/gs/vol2/home/psudmant/genomes/annotations/hg19/gaps/genomic_gaps_hg19.annotation.DTS  \
-                                --wssd_file wssd_out_file"%g_to_index[params.indiv])
+                                --GC_width {GC_WIDTH} --fn_input_genomes {params.genome}  \
+                                --fn_DGV_flatfile {DGV_ANNOTATIONS} \
+                                --fn_superdup_flatfile {GENOMIC_SUPER_DUP_ANNOTATIONS}  \
+                                --fn_genomic_gaps_flatfile {GAP_ANNOTATIONS} \
+                                --wssd_file wssd_out_file"""

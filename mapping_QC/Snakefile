@@ -1,0 +1,52 @@
+import os
+
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+if config == {}:
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+SAMPLE_LIST = config["sample_list"]
+MASKED_COUNT = config["masked_count"]
+
+SAMPLES = []
+CONTIGS = ["chr" + str(x) for x in list(range(1,23)) + ["X", "Y"]]
+
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+with open(SAMPLE_LIST, "r") as reader:
+    for line in reader:
+        SAMPLES.append(line.rstrip().split()[0])
+
+localrules: all
+
+rule all:
+    input: expand("combined_plot/{sample}.combined.pdf", sample = SAMPLES, contig = CONTIGS), "zero_depth_QC.pdf"
+
+rule get_0depth_count_merge:
+    input: expand("depth_count/{sample}.tab", sample = SAMPLES)
+    output: pdf = "zero_depth_QC.pdf", df = "zero_depth_QC.df"
+    params: sge_opts="-l mfree=16G -N zero_depth"
+    shell:
+        "python {SNAKEMAKE_DIR}/get_0read_bases.py --out_df {output.df} --out_pdf {output.pdf} --stat_files {input} --contigs {CONTIGS} --masked_count {SNAKEMAKE_DIR}/{MASKED_COUNT}"
+
+rule get_0depth_count_indiv:
+    input: "mapping/{sample}/{sample}/wssd_out_file"
+    output: "depth_count/{sample}.tab"
+    params: sge_opts="-l mfree=16G -N nz_{sample}"
+    shell:
+        "python {SNAKEMAKE_DIR}/get_0read_bases.py --out_df {output} --wssd_files {input} --contigs {CONTIGS} --masked_count {SNAKEMAKE_DIR}/{MASKED_COUNT}"
+
+rule merge_by_samples:
+    input: ["plot/{sample}.%s.pdf" % contig for contig in CONTIGS]
+    output: "combined_plot/{sample}.combined.pdf"
+    params: sge_opts = "-l mfree=4G"
+    shell:
+        "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output} {input}"
+
+rule get_contig_read_depth:
+    input: "mapping/{sample}/{sample}/wssd_out_file"
+    output: "plot/{sample}.{contig}.pdf"
+    params: sge_opts = "-l mfree=8G"
+    shell:
+        """python {SNAKEMAKE_DIR}/get_rd_windows.py {input[0]} {wildcards.contig} {output[0]}"""

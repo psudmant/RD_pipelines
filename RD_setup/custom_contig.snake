@@ -1,0 +1,161 @@
+import glob
+
+# Load configuration.
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+shell.prefix(". {SNAKEMAKE_DIR}/../env.sh; ")
+# Load configuration.
+
+if config == {}:
+    configfile: "%s/config.custom_contig.yaml" % SNAKEMAKE_DIR
+
+DATASET = config["dataset"]
+REFERENCE = config["reference"]
+
+SPLIT_DIR = config["split_dir"]
+
+GC_WIDTH=config["gc_width"]
+WND_WIDTH=config["window_width"]
+
+SEX_POP = config[DATASET]["sex_pop"]
+
+MASK_TRACK=config["custom_contig"]["mask_track"]
+CONTIGS=config["custom_contig"]["contig_lengths"]
+GC_TRACK=config["custom_contig"]["gc_content"]
+
+SUNK_MASK_TRACK = config[REFERENCE]["sunk_mask_track"]
+SUNK_WNDS_PKL = config[REFERENCE]["sunk_dts_windows"]
+WNDS_PKL = config[REFERENCE]["dts_windows"]
+CONTROL_LOCATIONS = config[REFERENCE]["control_locations"]
+
+DTS_DIR="DTS_files"
+BROWSER_TRACK_OUTDIR="tracks"
+
+WSSD_DIR="500_bp_slide"
+SUNK_DIR="500_bp_sunk_slide"
+
+### g_to_index is a dictionary with samples as keys and wssd_out_file directories as values.
+### By default, the mapping pipeline will give you folders like this: mapping/{sample}/{prefix}_merged.sorted/wssd_out_file
+### If your genomes are listed in the order they were mapped, you could build g_to_index like this:
+### g_to_index = {sample: i for i, sample in enumerate(genomes)}
+
+g_to_index = {}
+for f in glob.glob("%s/*" % SPLIT_DIR):
+    g = open(f).readline().split()[0]
+    g_to_index[g] = f
+
+genomes = sorted(g_to_index.keys())
+
+BAC_DIRS = {}
+for f in glob.glob("%s/*" % SPLIT_DIR):
+    line = open(f).readline().split()
+    genome = line[0]
+    bac_dir = line[2]
+    BAC_DIRS[genome] = line
+
+SUMMARY_STATS_DIRS = {}
+#for key in BAC_DIRS.keys():
+#    if key in ["Ust_Ishim", "Loschbour", "LBK", "Neanderthal", "Denisova"]:
+#        SUMMARY_STATS_DIRS[key] = key
+#    else:
+#        SUMMARY_STATS_DIRS[key] = "lib1"
+
+for key in BAC_DIRS.keys():
+    SUMMARY_STATS_DIRS[key] = key
+
+#genomes = ["AFR_BantuKenya_HGDP01414_F"]
+#g_to_index = {"AFR_BantuKenya_HGDP01414_F": "/net/eichler/vol23/projects/human_diversity/nobackups/C_team_bams_nodups/AFR_BantuKenya_HGDP01414_F.bam"}
+def _get_genome_from_wildcards(wildcards):
+    return g_to_index[wildcards.genome]
+
+localrules: all, get_WSSD_cc
+
+rule all:
+    input: expand("%s/{genome}_{type}.bb.trackdef"%(BROWSER_TRACK_OUTDIR), genome=genomes, type=["wssd", "sunk"])
+    params: sge_opts="-l mfree=6G -N final_all"
+
+# rule all:
+#     input: expand("bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params", genome=genomes)
+#     params: sge_opts="-N final_all"
+
+rule make_wssd_tracks:
+    input: "%s/500_bp_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
+    output: "{BROWSER_TRACK_OUTDIR}/{genome}_wssd.bb.trackdef"
+    params: sge_opts="-l mfree=6G -N wssd_track_{genome}"
+    priority: 25
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out wssd --output_contigs={CONTIGS}"
+
+rule make_sunk_tracks:
+    input: "%s/500_bp_sunk_slide/%d_bp_{genome}"%(DTS_DIR, WND_WIDTH)
+    output: "{BROWSER_TRACK_OUTDIR}/{genome}_sunk.bb.trackdef"
+    params: sge_opts="-l mfree=6G -N sunk_track_{genome}"
+    priority: 25
+    shell: "python /net/eichler/vol7/home/psudmant/EEE_Lab/projects/common_code/ssf_DTS_caller/bw_builder.py --out_dir {BROWSER_TRACK_OUTDIR} --fn_DTS {input} --contigs {SUNK_WNDS_PKL}.contigs --wnd_size {WND_WIDTH} --fn_out sunk --output_contigs={CONTIGS}"
+
+rule make_sunk_DTS:
+    input: lambda wildcards: BAC_DIRS[wildcards.genome][2] + "/%s/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params" % wildcards.genome
+    output: "{DTS_DIR}/500_bp_sunk_slide/{WND_WIDTH}_bp_{genome}"
+    params: sge_opts="-l mfree=12G -N DTS_SUNK_{genome}", indiv="{genome}"
+    priority: 20
+    run: 
+        shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+                    --contig_file {CONTIGS}  \
+                    --sunk_based \
+                    --mask_file {SUNK_MASK_TRACK} \
+                    --genome  %s  \
+                    --out_prefix {DTS_DIR}/{SUNK_DIR}/{WND_WIDTH}_bp   \
+                    --wnd_pickle {SUNK_WNDS_PKL}\
+                    --wnd_contig_file {SUNK_WNDS_PKL}.contigs  \
+                    --wnd_width {WND_WIDTH} \
+                    --param_file \"_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim1-ed-0.per_1kb_params\"" % g_to_index[params.indiv])
+
+rule make_DTS:
+    input: lambda wildcards: BAC_DIRS[wildcards.genome][2] + "/%s/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params" % wildcards.genome
+    output: "{DTS_DIR}/500_bp_slide/{WND_WIDTH}_bp_{genome}"
+    params: sge_opts="-l mfree=12G -N DTS_{genome}", indiv="{genome}"
+    priority: 20
+    run: 
+        shell("python ~psudmant/EEE_Lab/1000G/1000genomesScripts/windowed_analysis/DTS_window_analysis/generate_windowed_cp_ests.py \
+                    --contig_file {CONTIGS}  \
+                    --mask_file {MASK_TRACK} \
+                    --genome  %s  \
+                    --out_prefix {DTS_DIR}/{WSSD_DIR}/{WND_WIDTH}_bp   \
+                    --wnd_pickle {WNDS_PKL}\
+                    --wnd_contig_file {WNDS_PKL}.contigs  \
+                    --wnd_width {WND_WIDTH}"%g_to_index[params.indiv])
+
+#rule get_params:
+#    input: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
+#    output:  "bac_analysis/{genome}/_filtered_libs_analysis.GC3v2-NOWM-pad36/fit_params-CALKAN-NOWM-pad36-simple-dim0-ed-0.per_bac_params"
+#    params: sge_opts="-l mfree=4G -N params_{genome}", genome=_get_genome_from_wildcards
+#    priority: 15
+#    shell: """. /net/eichler/vol4/home/jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/get_params_on_control_regions/analyze_control_regions.py  \
+#                                    --in_bac_regions {CONTROL_LOCATIONS}  \
+#                                    --in_contigs {CONTIGS} \
+#                                    --in_mask {MASK_TRACK} \
+#                                    --input_genomes {params.genome} \
+#                                    --sex_pop_index {SEX_POP} \
+#                                    --bac_type CALKAN-NOWM-pad36 \
+#                                    --wssd_file_name wssd.combined_corrected.GC3.v2 \
+#                                    --output_directory _filtered_libs_analysis.GC3v2-NOWM-pad36 \
+#                                    --edits -1:0  \
+#                                    --type simple"""
+                                    #--only_use_cps 2  ONLY FOR NON-HUMANS
+
+rule get_WSSD_cc:
+    input: expand("primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2", genome=genomes)
+
+rule WSSD_cc:
+    input: lambda wildcards: BAC_DIRS[wildcards.genome][2] + "/%s/" % wildcards.genome + SUMMARY_STATS_DIRS[wildcards.genome] + "/summary_stats_dim0.txt"
+    output: "primary_analysis/{genome}/combined_corrected_wssd/wssd.combined_corrected.GC3.v2"
+    params: sge_opts="-l mfree=14G -N wssd_{genome} -l h_rt=6:00:00", genome=_get_genome_from_wildcards
+    priority: 10
+    shell: """. /net/eichler/vol4/home/jlhudd/pipelines/read_depth/env.sh; python ~psudmant/EEE_Lab/1000G/1000genomesScripts/wssd_make_combined_adjusted_tracks/wssd_make_combined_adjusted_tracks.py \
+                                    --contigLengths {CONTIGS} \
+                                    --gc_width {GC_WIDTH}  \
+                                    --in_genomes {params.genome} \
+                                    --inGC {GC_TRACK}:GC_content \
+                                    --sex_pop_index {SEX_POP} \
+                                    --input_wssd_file_names wssd_out_file \
+                                    --max_correction 3  \
+                                    --append_to_name .GC3.v2  \
+                                    --overide_thresh .01"""

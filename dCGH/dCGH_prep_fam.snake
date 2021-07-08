@@ -1,0 +1,85 @@
+import os
+import pandas as pd
+
+DTS_REF_DIR = "DTS_ref_files"
+DTS_DIR = "DTS_files"
+
+cwd=os.getcwd()
+
+batchDeterm = len(expand('DTS_files/500_bp_slide/{slide}',slide=os.listdir('DTS_files/500_bp_slide/')))
+
+if batchDeterm % 750 == 0:
+	iteration = int(((batchDeterm)/750))+1
+else:
+	iteration = int(((batchDeterm)/750))+2
+
+rule all:
+	input: 'prepped', 'organized'
+
+rule prep_workspace:
+	input: 
+		slide=expand('DTS_files/500_bp_slide/{slide}',slide=os.listdir('DTS_files/500_bp_slide/')), 
+		prep='prepped'
+	output:
+		flag=temp(touch('organized'))
+	params:
+		batch='batch_file.txt'
+	run:
+		batchNum = 0
+		for i,file in enumerate(os.listdir('DTS_files/500_bp_slide/')):
+			if i % 750 == 0:
+				batchNum += 1
+				os.mkdir("batch%d/%s" % (batchNum, DTS_DIR))
+				os.mkdir("batch%d/%s/500_bp_slide" % (batchNum, DTS_DIR))
+				os.mkdir("batch%d/%s/500_bp_sunk" % (batchNum, DTS_DIR))
+				shell("ln -s ${{PWD}}/gglob batch"+str(batchNum)+"/gglob")
+			shell("ln -s -t batch"+str(batchNum)+"/DTS_files/500_bp_slide/ ${{PWD}}/DTS_files/500_bp_slide/"+file)
+			shell("ln -s -t batch"+str(batchNum)+"/DTS_files/500_bp_sunk/ ${{PWD}}/DTS_files/500_bp_sunk_slide/"+file)
+			shell("echo -e batch"+str(batchNum)+"\"\t\""+str(file.split("_")[-1])+" >> {params.batch}")
+
+rule pick_ref:
+	input: 
+		slide=expand('DTS_files/500_bp_slide/{slide}',slide=os.listdir('DTS_files/500_bp_slide/')),
+		sexinfo='sex_info',
+		gcsummary='combined_output/wssd_GC_cp.summary'
+	output: 
+		flag=temp(touch('prepped')),
+		ref_male='reference_males.txt',
+		ref_female='reference_females.txt'
+
+	run: 
+		sex_info = pd.read_csv(input.sexinfo, sep="\s+", header=None, names=['file', 'sex', 'group'])
+		gc_summary = pd.read_csv(input.gcsummary, sep="\s+", header=None, names=['file', 'b', 'c', 'cn2', 'e'])
+		merged_df = gc_summary.merge(sex_info, how='inner', on='file')
+		print(merged_df)
+		males = merged_df[merged_df['sex'] == 'M'].sort_values(by='cn2', ascending=False)
+		males = males[males['group'].str.contains('fa')]
+		females = merged_df[merged_df['sex'] == 'F'].sort_values(by='cn2', ascending=False)
+		females = females[females['group'].str.contains('mo')]
+		try:
+			reference_males = males.iloc[range(10)]
+		except:
+			print('Not enough males in the set to use a subset. Using all.')
+			reference_males = males
+		try:
+			reference_females = females.iloc[range(10)]
+		except:
+			print('Not enough females in the set to use a subset. Using all.')
+			reference_females = females
+		reference_females.to_csv(output.ref_female, sep="\t", index=False, header=False)
+		reference_males.to_csv(output.ref_male, sep="\t", index=False, header=False)
+		reference_all = reference_females.append(reference_males)
+		if len(input.slide) % 750 == 0:
+			iteration = int(((len(input.slide))/750))
+		else:
+			iteration = int(((len(input.slide))/750))+1
+		for i in range(iteration):
+			batchNum = i+1
+			os.mkdir("batch%d" % batchNum)
+			os.mkdir("batch%d/%s" % (batchNum, DTS_REF_DIR))
+			os.mkdir("batch%d/%s/500_bp_slide" % (batchNum, DTS_REF_DIR))
+			os.mkdir("batch%d/%s/500_bp_sunk" % (batchNum, DTS_REF_DIR))
+			for ref in reference_all['file']:
+				shell("ln -s -t batch"+str(batchNum)+"/{DTS_REF_DIR}/500_bp_slide/ ../../../DTS_files/500_bp_slide/500_bp_"+ref)
+				shell("ln -s -t batch"+str(batchNum)+"/{DTS_REF_DIR}/500_bp_sunk/ ../../../DTS_files/500_bp_sunk_slide/500_bp_"+ref)
+

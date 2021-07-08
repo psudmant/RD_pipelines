@@ -1,0 +1,6 @@
+[submodule "wssd_sunk"]
+	path = wssd_sunk
+	url = https://github.com/EichlerLab/wssd_sunk.git
+[submodule "ssf_DTS_caller"]
+	path = ssf_DTS_caller
+	url = https://github.com/eichlerlab/ssf_DTS_caller.git

@@ -1,0 +1,69 @@
+import os
+
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
+
+if config == {}:
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+shell.prefix("source {0}/../env.conf; export PYTHONPATH=$PYTHONPATH:{0}/../wssd_sunk:{0}/../ssf_DTS_caller:{0}/../scripts; ".format(SNAKEMAKE_DIR))
+
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+REF = config["reference"]
+
+WSSD_CONTIGS = config[REF]["wssd_wnd_contigs"]
+SUNK_CONTIGS = config[REF]["sunk_wnd_contigs"]
+
+WSSD_DTS = config["wssd_DTS_dir"]
+SUNK_DTS = config["sunk_DTS_dir"]
+GGLOB = config["gglob_dir"]
+
+WND_SIZE = str(config["wnd_size"])
+WND_SLIDE = str(config["wnd_slide"])
+
+CONTIGS = []
+
+if not os.path.lexists(WSSD_CONTIGS):
+    WSSD_CONTIG_PATH = "%s/%s" % (SNAKEMAKE_DIR, WSSD_CONTIGS)
+else:
+    WSSD_CONTIG_PATH = WSSD_CONTIGS
+
+if not os.path.lexists(SUNK_CONTIGS):
+    SUNK_CONTIG_PATH = "%s/%s" % (SNAKEMAKE_DIR, SUNK_CONTIGS)
+else:
+    SUNK_CONTIG_PATH = SUNK_CONTIGS
+
+with open(WSSD_CONTIG_PATH, "r") as contigs_file:
+    for line in contigs_file:
+        contig = line.rstrip().split()[0]
+        CONTIGS.append(contig)
+
+FILE_TYPES = ["cp_matrix", "sunk_cp_matrix", "wnd_starts", "wnd_ends", "sunk_wnd_starts", "sunk_wnd_ends"]
+
+localrules: all
+
+rule all:
+    input: expand("%s/{chr}.{ft}.h5" % GGLOB, chr = CONTIGS, ft = FILE_TYPES)
+
+rule make_gglob:
+    input: "%s/gglob.idx" % GGLOB
+    output: ["%s/{chr}.%s.h5" % (GGLOB, ft) for ft in FILE_TYPES]
+    params: sge_opts = "-N make_gglob -l mfree=4G -l h_rt=00:30:00", chr = "{chr}"
+    shell:
+        """echo $PYTHONPATH; 
+	    python {SSF_DIR}/gglob.py --contigs {WSSD_CONTIG_PATH} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} \
+	    --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} --sunk_contigs {SUNK_CONTIG_PATH} --in_sunk_DTS_dir {SUNK_DTS} --setup_chr {params.chr}
+	"""
+
+rule gglob_setup:
+    input: WSSD_DTS, SUNK_DTS
+    output: "%s/gglob.idx" % GGLOB
+    params: sge_opts = "-N setup_gglob -l mfree=4G -l h_rt=00:30:00"
+    shell:
+        """ echo $PYTHONPATH; 
+    	python {SSF_DIR}/gglob.py \
+        --contigs {WSSD_CONTIG_PATH} --in_DTS_dir {WSSD_DTS} --gglob_dir {GGLOB} --wnd_size {WND_SIZE} --wnd_slide {WND_SLIDE} \
+        --sunk_contigs {SUNK_CONTIG_PATH} --in_sunk_DTS_dir {SUNK_DTS} --init
+	"""

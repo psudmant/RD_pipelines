@@ -1,0 +1,17 @@
+---
+    wssd_DTS_dir: DTS_files/500_bp_slide
+    sunk_DTS_dir: DTS_files/500_bp_sunk_slide
+    gglob_dir: gglob
+    wnd_slide: 100
+    wnd_size: 500
+    reference: hg38
+    hg19: 
+        wssd_wnd_contigs: contig_windows/hg19/500_bp_windows.wssd.pkl.contigs
+        sunk_wnd_contigs: contig_windows/hg19/500_bp_windows.sunk.pkl.contigs
+    
+    hg38: 
+        wssd_wnd_contigs: contig_windows/hg38/500_bp_windows.wssd.pkl.contigs
+        sunk_wnd_contigs: contig_windows/hg38/500_bp_windows.sunk.pkl.contigs
+    hg38_noM:
+        wssd_wnd_contigs: contig_windows/hg38_noM/500_bp_windows.wssd.pkl.contigs
+        sunk_wnd_contigs: contig_windows/hg38_noM/500_bp_windows.sunk.pkl.contigs

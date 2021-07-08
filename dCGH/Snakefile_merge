@@ -1,0 +1,110 @@
+import glob
+import gzip
+import io
+import random
+import math
+from datetime import date
+import time
+import os
+
+"""
+BEGIN CONSTANTS
+"""
+
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+
+SSF_DIR = SNAKEMAKE_DIR + "/../ssf_DTS_caller"
+SCRIPT_DIR = SNAKEMAKE_DIR + "/../scripts"
+
+CUTOFF_SCALE=3000
+WINDOW_SIZE=500
+MAX_MERGE_DIF=0.27
+
+if config == {}:
+    configfile: "%s/config.yaml" % SNAKEMAKE_DIR
+
+shell.prefix("source %s/../env.conf; export PYTHONPATH=%s/../wssd_sunk:$PYTHONPATH; " % (SNAKEMAKE_DIR, SNAKEMAKE_DIR))
+
+REFERENCE = config["reference"]
+DUP_TABIX = config[REFERENCE]["dup_tabix"]
+GENE_TABIX = config[REFERENCE]["gene_tabix"]
+GC_TABIX = config[REFERENCE]["gc_tabix"]
+
+P_CUTOFF = config["p_cutoff"]
+
+DTS_DIR = config["dts_dir"]
+DTS_REF_DIR = config["dts_ref_dir"]
+GGLOB_DIR = config["gglob_dir"]
+
+WND_CONTIGS = config[REFERENCE]["wnd_contigs"]
+GAPS = config[REFERENCE]["gaps"]
+
+"""
+Begin TEST_CALL_FILTER section.
+Run initially with TEST_CALL_FILTER set to True, then check call plots in plot directory. 
+Once you are satisfied with the calls, run 
+snakemake clean_call_filter_test 
+then run the Snakefile with TEST_CALL_FILTER set to False. 
+
+This section modifies how rule genotype_refine_breakpoints_by_chr_subset is run.
+"""
+
+TEST_CALL_FILTER = False
+
+if TEST_CALL_FILTER:
+    CONTIGS=["chr20"]
+    PLOT_MODE="--do_plot"
+    #PLOT_MODE=""
+else:
+    CONTIGS=["chr{}".format(d) for d in range(1,23)]
+    #CONTIGS=["chrX"] # Use this for calling on chrX, but run females and males separately
+    PLOT_MODE=""
+
+"""End TEST_CALL_FILTER section"""
+
+DTS_PREFIX="500_bp_"
+
+samples=[s.split("/")[-1].replace(DTS_PREFIX,"") for s in glob.glob("%s/*"%DTS_DIR)]
+
+N_SUBSETS=100
+SUBSETS=range(N_SUBSETS)
+
+references=[x.replace(DTS_PREFIX, "") for x in os.listdir(DTS_REF_DIR)]
+
+EXCLUDE=[]
+
+samples=list(set(samples)-set(EXCLUDE))
+
+"""
+END CONSTANTS
+"""
+
+"""
+LOAD MODULES, SET PYTHONPATH, AND CREATE INITIAL DIRECTORIES
+"""
+
+DIRS_TO_MAKE = ["log", "plot"]
+
+for folder in DIRS_TO_MAKE:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+datestr = "%d%.2d%.2d_%s"%(date.today().year,date.today().month,date.today().day, time.strftime('%H%M%S'))
+
+localrules: all, all_indiv_merge_trim
+
+rule all:
+    input: expand("merge_trim/{indiv}.tab", indiv=samples)
+
+rule all_indiv_merge_trim:
+    input: expand("merge_trim/{indiv}.tab", indiv=samples)
+
+rule indiv_merge_trim:
+    input: "all_resolved_calls/all_resolved_calls.gz"
+    output: "merge_trim/{indiv}.tab"
+    params:  sge_opts="-l mfree=8G -N combine_contigs -l h_rt=20:00:00", sd_gap=config[REFERENCE]["segdup_gaps"], mask_bed=config[REFERENCE]["mask_bed"], dts_prefix=DTS_DIR+"/"+DTS_PREFIX
+    shell:
+        "module purge; "
+        "module load modules modules-init modules-gs/prod modules-eichler/prod anaconda/201710 mpc/0.8.2 mpfr/3.1.0 gmp/5.0.2 gcc/4.9.1 R/3.4.0; "
+        "Rscript {SCRIPT_DIR}/dCGH_AllResolvedCallsFilter_MergeAndTrim_Individual.R {wildcards.indiv} {params.sd_gap} {params.mask_bed} {input} {params.dts_prefix} {output}"
+
